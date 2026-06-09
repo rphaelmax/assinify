@@ -194,7 +194,7 @@ Desenvolvido como projeto de conclusão de curso no colégio COTEMIG:
 |---|---|
 | **Juan Marco Costa Xavier** | [@JuanMxavieer](https://github.com/JuanMxavieer) |
 | **Raphael Max Alves Jacomo** | [@rphaelmax](https://github.com/rphaelmax) |
-| **Juan Leonel** | [@JuanLeonel27](https://github.com/JuanLeonel27) |
+| **Juan Leonel Monteiro** | [@JuanLeonel27](https://github.com/JuanLeonel27) |
 | **João Marcelo** | — |
 | **Arthur de Paiva** | — |
 
