@@ -17,19 +17,6 @@
 
 ---
 
-## Sumário
-
-- [Sobre o Projeto](#-sobre-o-projeto)
-- [Agente de IA](#-agente-de-ia)
-- [Funcionalidades](#-funcionalidades)
-- [Stack Tecnológica](#-stack-tecnológica)
-- [Arquitetura](#-arquitetura)
-- [Como Executar](#-como-executar)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Equipe](#-equipe)
-
----
-
 ## Sobre o Projeto
 
 O **Assinify** é um agente inteligente de gerenciamento de assinaturas digitais. Com ele, usuários podem centralizar e monitorar todos os seus serviços recorrentes — como plataformas de streaming, aplicativos e assinaturas digitais — em um único painel.
