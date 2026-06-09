@@ -105,7 +105,6 @@ Certifique-se de ter as seguintes ferramentas instaladas:
 - [PHP](https://www.php.net/) 8.2 ou superior
 - [Composer](https://getcomposer.org/)
 - [MySQL](https://www.mysql.com/) 8.0+
-- [Node.js](https://nodejs.org/) (para assets frontend, opcional)
 
 ### Passo a Passo
 
