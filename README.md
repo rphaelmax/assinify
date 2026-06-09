@@ -186,6 +186,13 @@ assinify/
 
 ---
 
+## Licença
+
+Este projeto é licenciado sob a GNU General Public License v3.0 (GPL-3.0).
+Isso significa que você é livre para usar, estudar, modificar e distribuir este software, desde que qualquer trabalho derivado seja distribuído sob os mesmos termos desta licença. Para mais detalhes, consulte o arquivo LICENSE.
+
+---
+
 ## Equipe
 
 Desenvolvido como projeto de conclusão de curso no colégio COTEMIG:
