@@ -156,7 +156,7 @@ Acesse a aplicação em: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 assinify/
