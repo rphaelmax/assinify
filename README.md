@@ -1,2 +1,2 @@
-# assinify
+# Assinify
 Agente de Assinaturas com IA. 
