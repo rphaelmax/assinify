@@ -5,9 +5,8 @@
 <p><strong>Seu agente inteligente de assinaturas, integrado com IA.</strong></p>
 
 <p>
-  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" />
-  <img src="https://img.shields.io/badge/Laravel-Framework-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Flask-Python-000000?style=for-the-badge&logo=flask&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Flask-Framework-000000?style=for-the-badge&logo=flask&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
   <img src="https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
   <img src="https://img.shields.io/badge/IA-Agente_Inteligente-8A2BE2?style=for-the-badge&logo=openai&logoColor=white" />
@@ -37,8 +36,6 @@ O coração do Assinify é seu agente inteligente, construído sobre uma API de 
 | **Previsão de Gastos** | Projeta o gasto futuro com assinaturas com base no comportamento atual |
 | **Interface Conversacional** | Permite ao usuário interagir com o agente em linguagem natural para tirar dúvidas e receber insights financeiros |
 
-O agente é exposto como um microsserviço independente via Flask, consumido pelo backend Laravel através de chamadas HTTP internas.
-
 ---
 
 ## Funcionalidades
@@ -62,10 +59,10 @@ O agente é exposto como um microsserviço independente via Flask, consumido pel
 - **JavaScript** — Interatividade e requisições dinâmicas
 
 ### Backend
-- **PHP 8.2+** — Linguagem principal do servidor
-- **Laravel** — Framework MVC para estruturação da aplicação, rotas, autenticação e ORM
-- **Python 3.10+** — Linguagem do microsserviço de IA
-- **Flask** — Microsserviço que expõe o agente de IA como API REST, consumido pelo Laravel
+- **Python 3.10+** — Linguagem principal do servidor
+- **Flask** — Framework principal da aplicação: rotas, autenticação, lógica de negócio e agente de IA
+- **SQLAlchemy** — ORM para interação com o banco de dados
+- **Flask-Login** — Gerenciamento de sessões e autenticação de usuários
 
 ### Banco de Dados
 - **MySQL** — Armazenamento relacional de usuários, assinaturas e histórico de pagamentos
@@ -74,25 +71,25 @@ O agente é exposto como um microsserviço independente via Flask, consumido pel
 
 ## Arquitetura
 
-O projeto segue o padrão **MVC (Model-View-Controller)** provido pelo Laravel:
+O projeto segue o padrão **MVC (Model-View-Controller)** implementado com Flask e seus blueprints:
 
 ```
 Frontend (HTML/CSS/JS)
         │
         ▼
-  Laravel Router
+  Flask Router (Blueprints)
         │
         ▼
-   Controllers  ──►  Models (Eloquent ORM)  ──►  MySQL
+   Controllers  ──►  Models (SQLAlchemy ORM)  ──►  MySQL
         │
         ▼
-  Flask AI Service  ──►  Agente de IA (LLM)
+  Agente de IA (LLM)
         │
         ▼
   Insights / Recomendações / Chat
 ```
 
-O Laravel atua como orquestrador principal, delegando ao microsserviço Flask todas as operações que envolvem inteligência artificial.
+O Flask atua como orquestrador único da aplicação, unificando o backend principal e o agente de IA em um mesmo serviço Python.
 
 ---
 
@@ -102,8 +99,8 @@ O Laravel atua como orquestrador principal, delegando ao microsserviço Flask to
 
 Certifique-se de ter as seguintes ferramentas instaladas:
 
-- [PHP](https://www.php.net/) 8.2 ou superior
-- [Composer](https://getcomposer.org/)
+- [Python](https://www.python.org/) 3.10 ou superior
+- [pip](https://pip.pypa.io/)
 - [MySQL](https://www.mysql.com/) 8.0+
 
 ### Passo a Passo
@@ -114,22 +111,33 @@ git clone https://github.com/rphaelmax/assinify.git
 cd assinify
 ```
 
-**2. Instale as dependências PHP**
+**2. Crie e ative um ambiente virtual**
 ```bash
-composer install
+python -m venv venv
+
+# Linux/macOS
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
 ```
 
-**3. Configure o ambiente**
+**3. Instale as dependências Python**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Configure o ambiente**
 ```bash
 cp .env.example .env
-php artisan key:generate
 ```
 
-**4. Configure o banco de dados**
-
-Edite o arquivo `.env` com suas credenciais MySQL:
+Edite o arquivo `.env` com suas credenciais:
 ```env
-DB_CONNECTION=mysql
+FLASK_APP=app.py
+FLASK_ENV=development
+SECRET_KEY=sua_chave_secreta
+
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=assinify
@@ -137,22 +145,22 @@ DB_USERNAME=seu_usuario
 DB_PASSWORD=sua_senha
 ```
 
-**5. Execute as migrations**
+**5. Crie o banco de dados e execute as migrations**
 ```bash
-php artisan migrate
+flask db upgrade
 ```
 
 **6. (Opcional) Popule o banco com dados de exemplo**
 ```bash
-php artisan db:seed
+flask seed
 ```
 
 **7. Inicie o servidor de desenvolvimento**
 ```bash
-php artisan serve
+flask run
 ```
 
-Acesse a aplicação em: [http://localhost:8000](http://localhost:8000)
+Acesse a aplicação em: [http://localhost:5000](http://localhost:5000)
 
 ---
 
@@ -160,27 +168,26 @@ Acesse a aplicação em: [http://localhost:8000](http://localhost:8000)
 
 ```
 assinify/
-├── app/                         # Aplicação Laravel
-│   ├── Http/
-│   │   ├── Controllers/         # Lógica de negócio
-│   │   └── Middleware/          # Autenticação e filtros
-│   └── Models/                  # Modelos Eloquent
-├── database/
-│   ├── migrations/              # Estrutura do banco de dados
-│   └── seeders/                 # Dados de exemplo
-├── public/
-│   ├── css/                     # Estilos CSS
-│   └── js/                      # Scripts JavaScript
-├── resources/
-│   └── views/                   # Templates HTML (Blade)
-├── routes/
-│   └── web.php                  # Definição de rotas
-├── ai-agent/                    # Microsserviço Flask (Agente de IA)
-│   ├── app.py                   # Ponto de entrada da API Flask
-│   ├── agent/                   # Lógica do agente de IA
+├── app/
+│   ├── __init__.py              # Factory da aplicação Flask
+│   ├── models/                  # Modelos SQLAlchemy
+│   │   ├── user.py
+│   │   ├── subscription.py
+│   │   └── payment.py
+│   ├── controllers/             # Blueprints e lógica de negócio
+│   │   ├── auth.py
+│   │   ├── dashboard.py
+│   │   └── subscriptions.py
+│   ├── agent/                   # Agente de IA (LLM)
 │   │   ├── analyzer.py          # Análise de perfil e padrões
 │   │   └── recommender.py       # Motor de recomendações
-│   └── requirements.txt         # Dependências Python
+│   ├── static/
+│   │   ├── css/                 # Estilos CSS
+│   │   └── js/                  # Scripts JavaScript
+│   └── templates/               # Templates HTML (Jinja2)
+├── migrations/                  # Migrations do banco de dados (Flask-Migrate)
+├── app.py                       # Ponto de entrada da aplicação
+├── requirements.txt             # Dependências Python
 └── .env.example                 # Exemplo de configuração
 ```
 
