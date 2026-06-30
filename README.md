@@ -6,7 +6,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Flask-Framework-000000?style=for-the-badge&logo=flask&logoColor=white" />
+  <img src="https://img.shields.io/badge/Flask-API_REST-000000?style=for-the-badge&logo=flask&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
   <img src="https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
   <img src="https://img.shields.io/badge/IA-Agente_Inteligente-8A2BE2?style=for-the-badge&logo=openai&logoColor=white" />
@@ -26,7 +26,7 @@ Mais do que um simples gerenciador, o Assinify conta com um **agente de IA** cap
 
 ## Agente de IA
 
-O coração do Assinify é seu agente inteligente, construído sobre uma API de LLM e servido via **Flask (Python)**. Ele opera de forma autônoma sobre os dados do usuário para:
+O coração do Assinify é seu agente inteligente, construído sobre a API do Gemini e exposto através do backend Flask. Ele opera de forma autônoma sobre os dados do usuário para:
 
 | Capacidade | Descrição |
 |---|---|
@@ -56,13 +56,13 @@ O coração do Assinify é seu agente inteligente, construído sobre uma API de 
 ### Frontend
 - **HTML5** — Estrutura semântica das páginas
 - **CSS3** — Estilização e responsividade
-- **JavaScript** — Interatividade e requisições dinâmicas
+- **JavaScript** — Interatividade e consumo da API via `fetch()`, sem renderização no servidor
 
 ### Backend
 - **Python 3.10+** — Linguagem principal do servidor
-- **Flask** — Framework principal da aplicação: rotas, autenticação, lógica de negócio e agente de IA
+- **Flask** — API REST: rotas, autenticação, regras de negócio e agente de IA. Retorna apenas JSON, sem renderização de HTML
 - **SQLAlchemy** — ORM para interação com o banco de dados
-- **Flask-Login** — Gerenciamento de sessões e autenticação de usuários
+- **Flask-Login / JWT** — Gerenciamento de sessões e autenticação de usuários
 
 ### Banco de Dados
 - **MySQL** — Armazenamento relacional de usuários, assinaturas e histórico de pagamentos
@@ -71,25 +71,25 @@ O coração do Assinify é seu agente inteligente, construído sobre uma API de 
 
 ## Arquitetura
 
-O projeto segue o padrão **MVC (Model-View-Controller)** implementado com Flask e seus blueprints:
+O projeto segue uma arquitetura **desacoplada**, com frontend e backend totalmente separados e comunicação via API REST:
 
 ```
 Frontend (HTML/CSS/JS)
+        │  fetch() / requisições HTTP
+        ▼
+  Flask API (Blueprints)
         │
         ▼
-  Flask Router (Blueprints)
+   Controllers  ──►  Services  ──►  Repositories  ──►  Models (SQLAlchemy)  ──►  MySQL
         │
         ▼
-   Controllers  ──►  Models (SQLAlchemy ORM)  ──►  MySQL
+  Agente de IA (Gemini API)
         │
         ▼
-  Agente de IA (LLM)
-        │
-        ▼
-  Insights / Recomendações / Chat
+  Insights / Recomendações / Chat (resposta em JSON)
 ```
 
-O Flask atua como orquestrador único da aplicação, unificando o backend principal e o agente de IA em um mesmo serviço Python.
+O frontend não depende do Flask para ser renderizado — é HTML/CSS/JS estático que consome a API. Isso garante a separação real entre as camadas exigida pelo professor, evitando renderização server-side (sem Jinja2 ou templates no backend).
 
 ---
 
@@ -101,14 +101,14 @@ Certifique-se de ter as seguintes ferramentas instaladas:
 
 - [Python](https://www.python.org/) 3.10 ou superior
 - [pip](https://pip.pypa.io/)
-- [MySQL](https://www.mysql.com/) 8.0+
+- [MySQL](https://www.mysql.com/) 8.0+ (via XAMPP)
 
-### Passo a Passo
+### Backend (API Flask)
 
 **1. Clone o repositório**
 ```bash
 git clone https://github.com/rphaelmax/assinify.git
-cd assinify
+cd assinify/backend
 ```
 
 **2. Crie e ative um ambiente virtual**
@@ -143,24 +143,24 @@ DB_PORT=3306
 DB_DATABASE=assinify
 DB_USERNAME=seu_usuario
 DB_PASSWORD=sua_senha
+
+GEMINI_API_KEY=sua_chave_gemini
 ```
 
-**5. Crie o banco de dados e execute as migrations**
-```bash
-flask db upgrade
-```
+**5. Crie o banco de dados**
 
-**6. (Opcional) Popule o banco com dados de exemplo**
-```bash
-flask seed
-```
+Execute o script SQL em `backend/database/create_database.sql` no MySQL (via phpMyAdmin do XAMPP ou linha de comando).
 
-**7. Inicie o servidor de desenvolvimento**
+**6. Inicie o servidor da API**
 ```bash
 flask run
 ```
 
-Acesse a aplicação em: [http://localhost:5000](http://localhost:5000)
+A API estará disponível em: [http://localhost:5000](http://localhost:5000)
+
+### Frontend
+
+O frontend é estático e pode ser servido por qualquer servidor local (ex: extensão Live Server do VSCode) apontando para a pasta `frontend/pages/`. As requisições JavaScript devem apontar para a URL da API Flask (`http://localhost:5000`).
 
 ---
 
@@ -168,27 +168,39 @@ Acesse a aplicação em: [http://localhost:5000](http://localhost:5000)
 
 ```
 assinify/
-├── app/
-│   ├── __init__.py              # Factory da aplicação Flask
-│   ├── models/                  # Modelos SQLAlchemy
-│   │   ├── user.py
-│   │   ├── subscription.py
-│   │   └── payment.py
-│   ├── controllers/             # Blueprints e lógica de negócio
-│   │   ├── auth.py
-│   │   ├── dashboard.py
-│   │   └── subscriptions.py
-│   ├── agent/                   # Agente de IA (LLM)
-│   │   ├── analyzer.py          # Análise de perfil e padrões
-│   │   └── recommender.py       # Motor de recomendações
-│   ├── static/
-│   │   ├── css/                 # Estilos CSS
-│   │   └── js/                  # Scripts JavaScript
-│   └── templates/               # Templates HTML (Jinja2)
-├── migrations/                  # Migrations do banco de dados (Flask-Migrate)
-├── app.py                       # Ponto de entrada da aplicação
-├── requirements.txt             # Dependências Python
-└── .env.example                 # Exemplo de configuração
+├── .gitignore
+├── frontend/
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   └── main.js
+│   └── pages/
+│       ├── index.html
+│       ├── login.html
+│       └── dashboard.html
+└── backend/
+    ├── app.py                       # Ponto de entrada da API Flask
+    ├── config.py                    # Configurações da aplicação
+    ├── requirements.txt             # Dependências Python
+    ├── .env.example                 # Exemplo de configuração
+    ├── controllers/                 # Blueprints — rotas da API (retornam JSON)
+    │   ├── auth_controller.py
+    │   ├── subscription_controller.py
+    │   └── dashboard_controller.py
+    ├── models/                      # Modelos SQLAlchemy
+    │   ├── user.py
+    │   ├── subscription.py
+    │   └── payment.py
+    ├── repositories/                # Consultas específicas e operações além do CRUD básico
+    │   ├── user_repository.py
+    │   ├── subscription_repository.py
+    │   └── payment_repository.py
+    ├── services/                    # Regras de negócio e agente de IA
+    │   ├── auth_service.py
+    │   ├── subscription_service.py
+    │   └── ai_service.py
+    └── database/
+        └── create_database.sql      # Script de criação do banco de dados
 ```
 
 ---
