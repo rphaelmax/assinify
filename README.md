@@ -1,227 +1,143 @@
-<div align="center">
+# Assinify — CRUD das Models (feat/crud-models)
 
-<h1>Assinify</h1>
-
-<p><strong>Seu agente inteligente de assinaturas, integrado com IA.</strong></p>
-
-<p>
-  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Flask-API_REST-000000?style=for-the-badge&logo=flask&logoColor=white" />
-  <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
-  <img src="https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
-  <img src="https://img.shields.io/badge/IA-Agente_Inteligente-8A2BE2?style=for-the-badge&logo=openai&logoColor=white" />
-</p>
-
-</div>
+Esta branch implementa o CRUD completo das principais Models do projeto, seguindo a arquitetura em camadas com Controllers, Services, Models e Repositories, conforme o material disponibilizado pelo professor Gleison (Projeto de Software).
 
 ---
 
-## Sobre o Projeto
+## O que foi implementado
 
-O **Assinify** é um agente inteligente de gerenciamento de assinaturas digitais. Com ele, usuários podem centralizar e monitorar todos os seus serviços recorrentes — como plataformas de streaming, aplicativos e assinaturas digitais — em um único painel.
+### Models
 
-Mais do que um simples gerenciador, o Assinify conta com um **agente de IA** capaz de analisar o perfil de consumo do usuário, identificar padrões de gasto e agir proativamente para sugerir economia, detectar cobranças redundantes e recomendar planos mais adequados ao uso real.
+Todas herdam de `db.Model` e possuem os métodos `salvar()`, `atualizar()`, `deletar()`, `listar_todos()`, `buscar_por_id()` e `to_dict()`.
 
----
+| Model | Tabela | Campos |
+|---|---|---|
+| `Usuario` | `usuarios` | id, nome, email, senha, telefone, data_cadastro |
+| `Categoria` | `categorias` | id, nome_categoria, descricao |
+| `Assinatura` | `assinaturas` | id, nome_servico, valor_mensal, data_renovacao, status, tipo_plano, id_usuario, id_categoria |
 
-## Agente de IA
+### Rotas da API
 
-O coração do Assinify é seu agente inteligente, construído sobre a API do Gemini e exposto através do backend Flask. Ele opera de forma autônoma sobre os dados do usuário para:
+| Método | Rota | Descrição |
+|---|---|---|
+| POST | `/usuarios` | Criar usuário |
+| GET | `/usuarios` | Listar usuários |
+| GET | `/usuarios/<id>` | Buscar usuário por ID |
+| PUT | `/usuarios/<id>` | Atualizar usuário |
+| DELETE | `/usuarios/<id>` | Deletar usuário |
+| POST | `/categorias` | Criar categoria |
+| GET | `/categorias` | Listar categorias |
+| GET | `/categorias/<id>` | Buscar categoria por ID |
+| PUT | `/categorias/<id>` | Atualizar categoria |
+| DELETE | `/categorias/<id>` | Deletar categoria |
+| POST | `/assinaturas` | Criar assinatura |
+| GET | `/assinaturas` | Listar assinaturas |
+| GET | `/assinaturas/<id>` | Buscar assinatura por ID |
+| PUT | `/assinaturas/<id>` | Atualizar assinatura |
+| DELETE | `/assinaturas/<id>` | Deletar assinatura |
 
-| Capacidade | Descrição |
-|---|---|
-| **Análise de Perfil** | Avalia o histórico de assinaturas e identifica padrões de uso e gasto ao longo do tempo |
-| **Detecção de Desperdício** | Identifica assinaturas subutilizadas ou redundantes que podem ser canceladas |
-| **Recomendação de Planos** | Sugere planos mais baratos ou promoções disponíveis com base no perfil do usuário |
-| **Previsão de Gastos** | Projeta o gasto futuro com assinaturas com base no comportamento atual |
-| **Interface Conversacional** | Permite ao usuário interagir com o agente em linguagem natural para tirar dúvidas e receber insights financeiros |
+### Services
 
----
-
-## Funcionalidades
-
-| Funcionalidade | Descrição |
-|---|---|
-| **Cadastro de Assinaturas** | Registre todos os seus serviços recorrentes com detalhes como valor, ciclo de cobrança e categoria |
-| **Controle de Gastos** | Acompanhe em tempo real quanto você gasta mensalmente com assinaturas |
-| **Histórico de Pagamentos** | Visualize o histórico completo de cobranças por serviço |
-| **Notificações de Vencimento** | Receba alertas antes das datas de renovação para evitar cobranças indesejadas |
-| **Sugestões de Economia** | Receba recomendações de planos mais baratos, promoções e descontos disponíveis |
-| **Dashboard Financeiro** | Painel visual com resumo dos seus gastos, gráficos e indicadores financeiros |
-
----
-
-## Stacks
-
-### Frontend
-- **HTML5** — Estrutura semântica das páginas
-- **CSS3** — Estilização e responsividade
-- **JavaScript** — Interatividade e consumo da API via `fetch()`, sem renderização no servidor
-
-### Backend
-- **Python 3.10+** — Linguagem principal do servidor
-- **Flask** — API REST: rotas, autenticação, regras de negócio e agente de IA. Retorna apenas JSON, sem renderização de HTML
-- **SQLAlchemy** — ORM para interação com o banco de dados
-- **Flask-Login / JWT** — Gerenciamento de sessões e autenticação de usuários
-
-### Banco de Dados
-- **MySQL** — Armazenamento relacional de usuários, assinaturas e histórico de pagamentos
-
----
-
-## Arquitetura
-
-O projeto segue uma arquitetura **desacoplada**, com frontend e backend totalmente separados e comunicação via API REST:
+Organizados por caso de uso, um arquivo por operação, dentro de subpastas por Model:
 
 ```
-Frontend (HTML/CSS/JS)
-        │  fetch() / requisições HTTP
-        ▼
-  Flask API (Blueprints)
-        │
-        ▼
-   Controllers  ──►  Services  ──►  Repositories  ──►  Models (SQLAlchemy)  ──►  MySQL
-        │
-        ▼
-  Agente de IA (Gemini API)
-        │
-        ▼
-  Insights / Recomendações / Chat (resposta em JSON)
+services/
+├── usuario/
+│   ├── criar_usuario_service.py
+│   ├── listar_usuarios_service.py
+│   ├── buscar_usuario_service.py
+│   ├── atualizar_usuario_service.py
+│   └── deletar_usuario_service.py
+├── categoria/
+│   └── (mesma estrutura)
+└── assinatura/
+    └── (mesma estrutura)
 ```
 
-O frontend não depende do Flask para ser renderizado — é HTML/CSS/JS estático que consome a API. Isso garante a separação real entre as camadas exigida pelo professor, evitando renderização server-side (sem Jinja2 ou templates no backend).
+### Frontend (provisório)
+
+O frontend desta entrega é provisório e tem como objetivo demonstrar o funcionamento completo do CRUD via interface, conforme exigido pela atividade. As telas serão redesenhadas nas próximas entregas com autenticação real e navegação definitiva.
+
+| Página | Funcionalidades |
+|---|---|
+| `dashboard.html` | Listar, criar, editar e excluir assinaturas |
+| `categorias.html` | Listar, criar, editar e excluir categorias |
+| `usuarios.html` | Listar, criar, editar e excluir usuários |
+
+> O seletor de usuário no dashboard é provisório e será substituído por autenticação via login nas próximas entregas.
 
 ---
 
-## Como Executar
+## Como executar
 
 ### Pré-requisitos
 
-Certifique-se de ter as seguintes ferramentas instaladas:
+- Python 3.10+
+- MySQL 8.0+ (via XAMPP)
+- Extensão Live Server no VSCode (para o frontend)
 
-- [Python](https://www.python.org/) 3.10 ou superior
-- [pip](https://pip.pypa.io/)
-- [MySQL](https://www.mysql.com/) 8.0+ (via XAMPP)
+### 1. Criar o banco de dados
 
-### Backend (API Flask)
+Abra o phpMyAdmin (`http://localhost/phpmyadmin`), vá em **SQL** e execute o conteúdo do arquivo:
 
-**1. Clone o repositório**
-```bash
-git clone https://github.com/rphaelmax/assinify.git
-cd assinify/backend
+```
+backend/database/create_database.sql
 ```
 
-**2. Crie e ative um ambiente virtual**
+### 2. Configurar e rodar o backend
+
 ```bash
+cd backend
 python -m venv venv
-
-# Linux/macOS
-source venv/bin/activate
-
-# Windows
 venv\Scripts\activate
-```
-
-**3. Instale as dependências Python**
-```bash
 pip install -r requirements.txt
-```
-
-**4. Configure o ambiente**
-```bash
-cp .env.example .env
-```
-
-Edite o arquivo `.env` com suas credenciais:
-```env
-FLASK_APP=app.py
-FLASK_ENV=development
-SECRET_KEY=sua_chave_secreta
-
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=assinify
-DB_USERNAME=seu_usuario
-DB_PASSWORD=sua_senha
-
-GEMINI_API_KEY=sua_chave_gemini
-```
-
-**5. Crie o banco de dados**
-
-Execute o script SQL em `backend/database/create_database.sql` no MySQL (via phpMyAdmin do XAMPP ou linha de comando).
-
-**6. Inicie o servidor da API**
-```bash
 flask run
 ```
 
-A API estará disponível em: [http://localhost:5000](http://localhost:5000)
+A API estará disponível em: `http://localhost:5000`
 
-### Frontend
+### 3. Rodar o frontend
 
-O frontend é estático e pode ser servido por qualquer servidor local (ex: extensão Live Server do VSCode) apontando para a pasta `frontend/pages/`. As requisições JavaScript devem apontar para a URL da API Flask (`http://localhost:5000`).
+Abra a pasta `frontend/pages/` com o Live Server do VSCode e acesse `dashboard.html`.
+
+> Certifique-se de que a API está rodando antes de abrir o frontend.
 
 ---
 
-## Estrutura do Projeto
+## Estrutura da branch
 
 ```
 assinify/
-├── .gitignore
 ├── frontend/
-│   ├── css/
-│   │   └── style.css
+│   ├── css/style.css
 │   ├── js/
-│   │   └── main.js
+│   │   ├── dashboard.js
+│   │   ├── categorias.js
+│   │   └── usuarios.js
 │   └── pages/
-│       ├── index.html
-│       ├── login.html
-│       └── dashboard.html
+│       ├── dashboard.html
+│       ├── categorias.html
+│       └── usuarios.html
 └── backend/
-    ├── app.py                       # Ponto de entrada da API Flask
-    ├── config.py                    # Configurações da aplicação
-    ├── requirements.txt             # Dependências Python
-    ├── .env.example                 # Exemplo de configuração
-    ├── controllers/                 # Blueprints — rotas da API (retornam JSON)
-    │   ├── auth_controller.py
-    │   ├── subscription_controller.py
-    │   └── dashboard_controller.py
-    ├── models/                      # Modelos SQLAlchemy
-    │   ├── user.py
-    │   ├── subscription.py
-    │   └── payment.py
-    ├── repositories/                # Consultas específicas e operações além do CRUD básico
-    │   ├── user_repository.py
-    │   ├── subscription_repository.py
-    │   └── payment_repository.py
-    ├── services/                    # Regras de negócio e agente de IA
-    │   ├── auth_service.py
-    │   ├── subscription_service.py
-    │   └── ai_service.py
-    └── database/
-        └── create_database.sql      # Script de criação do banco de dados
+    ├── app.py
+    ├── requirements.txt
+    ├── database/
+    │   └── create_database.sql
+    └── app/
+        ├── __init__.py
+        ├── extensions.py
+        ├── routes.py
+        ├── controllers/
+        │   ├── usuario_controller.py
+        │   ├── categoria_controller.py
+        │   └── assinatura_controller.py
+        ├── models/
+        │   ├── usuario.py
+        │   ├── categoria.py
+        │   └── assinatura.py
+        ├── repositories/
+        └── services/
+            ├── usuario/
+            ├── categoria/
+            └── assinatura/
 ```
-
----
-
-## Licença
-
-Este projeto é licenciado sob a GNU General Public License v3.0 (GPL-3.0).
-Isso significa que você é livre para usar, estudar, modificar e distribuir este software, desde que qualquer trabalho derivado seja distribuído sob os mesmos termos desta licença. Para mais detalhes, consulte o arquivo LICENSE.
-
----
-
-## Equipe
-
-Desenvolvido como projeto de conclusão de curso no colégio COTEMIG:
-
-| Nome | GitHub |
-|---|---|
-| **Juan Marco Costa Xavier** | [@JuanMxavieer](https://github.com/JuanMxavieer) |
-| **Raphael Max Alves Jacomo** | [@rphaelmax](https://github.com/rphaelmax) |
-| **Juan Leonel Monteiro** | [@JuanLeonel27](https://github.com/JuanLeonel27) |
-| **João Marcelo Augusto Moreira** | [@joaomarceloaugusto](https://github.com/joaomarceloaugusto) |
-| **Arthur de Paiva** | — |
-
----

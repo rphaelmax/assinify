@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assinify — Início</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Assin<span>ify</span></div>
+  <nav>
+    <a class="nav-item active" href="dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Início
+    </a>
+    <div class="nav-section">Gerenciar</div>
+    <a class="nav-item" href="categorias.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      Categorias
+    </a>
+    <a class="nav-item" href="usuarios.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Usuários
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar" id="sidebar-avatar">?</div>
+    <div>
+      <div class="avatar-name" id="sidebar-nome">Carregando...</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">Assinaturas</span>
+    <div class="topbar-actions">
+      <select class="filter-select" id="select-usuario" onchange="carregarAssinaturas()" title="Usuário ativo (provisório)">
+        <option disabled>Carregando...</option>
+      </select>
+      <div class="btn-notif">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="dot"></div>
+      </div>
+      <button class="btn-primary" onclick="abrirModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova assinatura
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="summary-card">
+      <div>
+        <div class="summary-label">Gasto mensal</div>
+        <div class="summary-value" id="total-mensal">R$ 0,00</div>
+        <div class="summary-badge">somente assinaturas ativas</div>
+      </div>
+      <button class="summary-add" onclick="abrirModal()">+</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Próximas renovações</span>
+          <a class="link" href="#">Ver todas</a>
+        </div>
+        <div id="renovacoes-list"><div class="loading">Carregando...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="sub-header">
+          <span class="card-title">Minhas assinaturas</span>
+          <select class="filter-select" id="filtro-status" onchange="aplicarFiltro()">
+            <option value="todas">Todas</option>
+            <option value="ativa" selected>Ativas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+        </div>
+        <div id="assinaturas-list"><div class="loading">Carregando...</div></div>
+        <button class="btn-add-sub" onclick="abrirModal()">+ Adicionar assinatura</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal" onclick="fecharModalFora(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Nova assinatura</div>
+    <div class="form-group">
+      <label class="form-label">Nome do serviço</label>
+      <input class="form-input" type="text" id="input-nome" placeholder="Ex: Netflix" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valor mensal</label>
+        <input class="form-input" type="number" id="input-valor" placeholder="0,00" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Renovação</label>
+        <input class="form-input" type="date" id="input-renovacao" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-input" id="input-categoria"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plano</label>
+        <input class="form-input" type="text" id="input-plano" placeholder="Ex: Premium" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-save" onclick="salvarAssinatura()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/dashboard.js"></script>
+</body>
+</html>
