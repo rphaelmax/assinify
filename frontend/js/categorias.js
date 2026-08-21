@@ -1,20 +1,21 @@
-const API = 'http://localhost:5000';
 let editandoId = null;
+let usuarioAtual = null;
 
 async function carregarCategorias() {
   try {
-    const res = await fetch(`${API}/categorias`);
+    const res = await apiFetch('/categorias');
     const categorias = await res.json();
     renderizarTabela(categorias);
   } catch {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="3" class="empty">Erro ao carregar categorias.</td></tr>';
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="4" class="empty">Erro ao carregar categorias.</td></tr>';
   }
 }
 
 function renderizarTabela(categorias) {
   const tbody = document.getElementById('tbody');
+
   if (categorias.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty">Nenhuma categoria cadastrada.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhuma categoria cadastrada.</td></tr>';
     return;
   }
   tbody.innerHTML = categorias.map(c => `
@@ -71,13 +72,9 @@ async function salvar() {
   }
 
   try {
-    const url = editandoId ? `${API}/categorias/${editandoId}` : `${API}/categorias`;
+    const url = editandoId ? `/categorias/${editandoId}` : '/categorias';
     const method = editandoId ? 'PUT' : 'POST';
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dados)
-    });
+    const res = await apiFetch(url, { method, body: JSON.stringify(dados) });
 
     if (res.ok) {
       fecharModal();
@@ -94,7 +91,7 @@ async function salvar() {
 async function excluir(id) {
   if (!confirm('Deseja excluir esta categoria?')) return;
   try {
-    const res = await fetch(`${API}/categorias/${id}`, { method: 'DELETE' });
+    const res = await apiFetch(`/categorias/${id}`, { method: 'DELETE' });
     if (res.ok) carregarCategorias();
     else alert('Erro ao excluir.');
   } catch {
@@ -102,4 +99,10 @@ async function excluir(id) {
   }
 }
 
-carregarCategorias();
+async function init() {
+  usuarioAtual = await protegerPagina();
+  if (!usuarioAtual) return;
+  carregarCategorias();
+}
+
+init();

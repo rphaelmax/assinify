@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assinify — Criar conta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<div class="auth-wrapper">
+  <div class="auth-panel-form">
+    <div class="auth-logo">Assin<span>ify</span></div>
+
+    <form class="auth-form" onsubmit="registrar(event)">
+      <div class="auth-title">Criar sua conta</div>
+      <div class="auth-subtitle">Leva menos de um minuto.</div>
+
+      <div class="auth-error" id="auth-error"></div>
+
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input class="form-input" type="text" id="input-nome" placeholder="Seu nome" autocomplete="name" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" id="input-email" placeholder="voce@email.com" autocomplete="email" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input class="form-input" type="password" id="input-senha" placeholder="••••••••" autocomplete="new-password" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar senha</label>
+          <input class="form-input" type="password" id="input-confirmar-senha" placeholder="••••••••" autocomplete="new-password" required />
+        </div>
+      </div>
+
+      <button class="btn-auth-submit" type="submit" id="btn-submit">Criar conta</button>
+
+      <div class="auth-switch">Já tem conta? <a href="login.html">Entrar</a></div>
+    </form>
+  </div>
+
+  <div class="auth-panel-brand">
+    <div class="auth-brand-headline">Cada assinatura, num só lugar, sob controle.</div>
+    <div class="auth-brand-sub">Cadastre suas assinaturas em segundos e nunca mais seja pego de surpresa por uma renovação.</div>
+
+    <div class="auth-preview-card" aria-label="Prévia do dashboard">
+      <div class="auth-preview-label">Gasto mensal estimado</div>
+      <div class="auth-preview-value">R$ 74,70</div>
+      <div class="auth-preview-items"></div>
+      <div class="auth-preview-footer">Assinaturas ativas • atualizado agora</div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/auth-preview.js"></script>
+</body>
+</html>

@@ -21,15 +21,20 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
       Categorias
     </a>
-    <a class="nav-item" href="usuarios.html">
+    <a class="nav-item" href="usuarios.html" id="nav-usuarios">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Usuários
     </a>
   </nav>
   <div class="sidebar-footer">
-    <div class="avatar" id="sidebar-avatar">?</div>
-    <div>
-      <div class="avatar-name" id="sidebar-nome">Carregando...</div>
+    <div class="sidebar-footer-row">
+      <div class="avatar" id="sidebar-avatar">?</div>
+      <div>
+        <div class="avatar-name" id="sidebar-nome">Carregando...</div>
+      </div>
+      <button class="btn-logout" title="Sair" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
     </div>
   </div>
 </aside>
@@ -38,7 +43,7 @@
   <div class="topbar">
     <span class="topbar-title">Categorias</span>
     <div class="topbar-actions">
-      <button class="btn-primary" onclick="abrirModal()">
+      <button class="btn-primary" id="btn-nova-categoria" onclick="abrirModal()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nova categoria
       </button>
@@ -48,7 +53,7 @@
   <div class="content">
     <div class="table-card">
       <div class="table-toolbar">
-        <span class="card-title">Todas as categorias</span>
+        <span class="card-title">Minhas categorias</span>
       </div>
       <table>
         <thead>
@@ -85,20 +90,7 @@
   </div>
 </div>
 
+<script src="../js/api.js"></script>
 <script src="../js/categorias.js"></script>
-<script>
-  const API_BASE = 'http://localhost:5000';
-  fetch(`${API_BASE}/usuarios`)
-    .then(r => r.json())
-    .then(usuarios => {
-      if (!usuarios.length) return;
-      const idSalvo = localStorage.getItem('assinify_usuario_id');
-      const u = idSalvo ? usuarios.find(x => x.id_usuario === parseInt(idSalvo)) : usuarios[0];
-      const ativo = u || usuarios[0];
-      document.getElementById('sidebar-avatar').textContent = ativo.nome[0].toUpperCase();
-      document.getElementById('sidebar-nome').textContent = ativo.nome;
-    })
-    .catch(() => {});
-</script>
 </body>
 </html>

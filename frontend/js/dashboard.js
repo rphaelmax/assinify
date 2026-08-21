@@ -1,59 +1,15 @@
-const API = 'http://localhost:5000';
-const LOGO_TOKEN = 'pk_aFebUAI6TXi3KllA2BUauA';
-
 let todasAssinaturas = [];
 let editandoId = null;
 
-function getIdUsuario() {
-  return parseInt(document.getElementById('select-usuario').value);
-}
-
-async function carregarUsuariosSelect() {
-  try {
-    const res = await fetch(`${API}/usuarios`);
-    const usuarios = await res.json();
-    const select = document.getElementById('select-usuario');
-
-    select.innerHTML = usuarios.map(u =>
-      `<option value="${u.id_usuario}">${u.nome}</option>`
-    ).join('');
-
-    const idSalvo = localStorage.getItem('assinify_usuario_id');
-    const usuarioSalvo = idSalvo ? usuarios.find(u => u.id_usuario === parseInt(idSalvo)) : null;
-    const usuarioAtivo = usuarioSalvo || usuarios[0];
-
-    if (usuarioAtivo) {
-      select.value = usuarioAtivo.id_usuario;
-      atualizarSidebarUsuario(usuarioAtivo);
-    }
-
-    select.addEventListener('change', () => {
-      const u = usuarios.find(x => x.id_usuario === parseInt(select.value));
-      if (u) {
-        localStorage.setItem('assinify_usuario_id', u.id_usuario);
-        atualizarSidebarUsuario(u);
-        carregarAssinaturas();
-      }
-    });
-  } catch {
-    console.error('Erro ao carregar usuários');
-  }
-}
-
-function atualizarSidebarUsuario(u) {
-  if (!u) return;
-  document.getElementById('sidebar-avatar').textContent = u.nome[0].toUpperCase();
-  document.getElementById('sidebar-nome').textContent = u.nome;
-}
-
-function logoUrl(nome) {
-  const limpo = nome.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s]/g, '')
-    .trim()
-    .split(/\s+/)[0];
-  return `https://img.logo.dev/${limpo}.com?token=${LOGO_TOKEN}&format=webp&retina=true`;
-}
+const METODOS_PAGAMENTO_LABEL = {
+  cartao_credito: 'Cartão de crédito',
+  cartao_debito: 'Cartão de débito',
+  pix: 'PIX',
+  boleto: 'Boleto',
+  debito_automatico: 'Débito automático',
+  transferencia: 'Transferência',
+  outro: 'Outro'
+};
 
 function formatarMoeda(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -67,7 +23,7 @@ function diasAteRenovacao(dataStr) {
 
 async function carregarAssinaturas() {
   try {
-    const res = await fetch(`${API}/assinaturas`);
+    const res = await apiFetch('/assinaturas');
     todasAssinaturas = await res.json();
     renderizarAssinaturas();
     renderizarRenovacoes();
@@ -135,7 +91,7 @@ function renderizarAssinaturas() {
       </div>
       <div class="sub-info">
         <div class="sub-name">${a.nome_servico}</div>
-        <div class="sub-category">${a.tipo_plano || 'Sem plano'}</div>
+        <div class="sub-category">${a.tipo_plano || 'Sem plano'} · ${METODOS_PAGAMENTO_LABEL[a.metodo_pagamento] || 'Pagamento não informado'}</div>
       </div>
       <div class="sub-value">${formatarMoeda(a.valor_mensal)}</div>
       <div class="sub-actions">
@@ -151,7 +107,7 @@ function renderizarAssinaturas() {
 
 async function carregarCategorias() {
   try {
-    const res = await fetch(`${API}/categorias`);
+    const res = await apiFetch('/categorias');
     const categorias = await res.json();
     const select = document.getElementById('input-categoria');
     select.innerHTML = categorias.map(c =>
@@ -169,6 +125,8 @@ function abrirModal() {
   document.getElementById('input-valor').value = '';
   document.getElementById('input-renovacao').value = '';
   document.getElementById('input-plano').value = '';
+  document.getElementById('input-pagamento').value = 'cartao_credito';
+  document.getElementById('input-status').value = 'ativa';
   document.getElementById('modal').classList.add('open');
   carregarCategorias();
 }
@@ -182,6 +140,8 @@ function abrirModalEditar(id) {
   document.getElementById('input-valor').value = a.valor_mensal;
   document.getElementById('input-renovacao').value = a.data_renovacao;
   document.getElementById('input-plano').value = a.tipo_plano || '';
+  document.getElementById('input-pagamento').value = a.metodo_pagamento || 'cartao_credito';
+  document.getElementById('input-status').value = a.status || 'ativa';
   document.getElementById('modal').classList.add('open');
   carregarCategorias().then(() => {
     document.getElementById('input-categoria').value = a.id_categoria;
@@ -202,9 +162,9 @@ async function salvarAssinatura() {
     valor_mensal: parseFloat(document.getElementById('input-valor').value),
     data_renovacao: document.getElementById('input-renovacao').value,
     tipo_plano: document.getElementById('input-plano').value,
+    metodo_pagamento: document.getElementById('input-pagamento').value,
     id_categoria: parseInt(document.getElementById('input-categoria').value),
-    id_usuario: getIdUsuario(),
-    status: 'ativa'
+    status: document.getElementById('input-status').value
   };
 
   if (!dados.nome_servico || !dados.valor_mensal || !dados.data_renovacao) {
@@ -213,13 +173,9 @@ async function salvarAssinatura() {
   }
 
   try {
-    const url = editandoId ? `${API}/assinaturas/${editandoId}` : `${API}/assinaturas`;
+    const url = editandoId ? `/assinaturas/${editandoId}` : '/assinaturas';
     const method = editandoId ? 'PUT' : 'POST';
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dados)
-    });
+    const res = await apiFetch(url, { method, body: JSON.stringify(dados) });
 
     if (res.ok) {
       fecharModal();
@@ -236,7 +192,7 @@ async function salvarAssinatura() {
 async function excluirAssinatura(id) {
   if (!confirm('Deseja excluir esta assinatura?')) return;
   try {
-    const res = await fetch(`${API}/assinaturas/${id}`, { method: 'DELETE' });
+    const res = await apiFetch(`/assinaturas/${id}`, { method: 'DELETE' });
     if (res.ok) carregarAssinaturas();
     else alert('Erro ao excluir.');
   } catch {
@@ -245,7 +201,8 @@ async function excluirAssinatura(id) {
 }
 
 async function init() {
-  await carregarUsuariosSelect();
+  const usuario = await protegerPagina();
+  if (!usuario) return;
   carregarAssinaturas();
 }
 

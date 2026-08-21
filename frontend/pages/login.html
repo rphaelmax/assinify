@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assinify — Entrar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<div class="auth-wrapper">
+  <div class="auth-panel-form">
+    <div class="auth-logo">Assin<span>ify</span></div>
+
+    <form class="auth-form" onsubmit="entrar(event)">
+      <div class="auth-title">Entrar na sua conta</div>
+      <div class="auth-subtitle">Acompanhe suas assinaturas em um só lugar.</div>
+
+      <div class="auth-error" id="auth-error"></div>
+
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" id="input-email" placeholder="voce@email.com" autocomplete="email" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <input class="form-input" type="password" id="input-senha" placeholder="••••••••" autocomplete="current-password" required />
+      </div>
+
+      <button class="btn-auth-submit" type="submit" id="btn-submit">Entrar</button>
+
+      <div class="auth-switch">Ainda não tem conta? <a href="registro.html">Criar conta</a></div>
+    </form>
+  </div>
+
+  <div class="auth-panel-brand">
+    <div class="auth-brand-headline">Pare de pagar por assinaturas que você esqueceu que tem.</div>
+    <div class="auth-brand-sub">O Assinify reúne tudo o que você assina em um painel só e avisa antes de cada renovação.</div>
+
+    <div class="auth-preview-card" aria-label="Prévia do dashboard">
+      <div class="auth-preview-label">Gasto mensal estimado</div>
+      <div class="auth-preview-value">R$ 74,70</div>
+      <div class="auth-preview-items"></div>
+      <div class="auth-preview-footer">Assinaturas ativas • atualizado agora</div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/auth-preview.js"></script>
+</body>
+</html>

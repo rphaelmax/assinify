@@ -1,4 +1,5 @@
 from app.models.usuario import Usuario
+from app.exceptions import NotFoundError
 
 
 class DeletarUsuarioService:
@@ -6,5 +7,5 @@ class DeletarUsuarioService:
     def executar(id):
         usuario = Usuario.buscar_por_id(id)
         if usuario is None:
-            raise ValueError('Usuário não encontrado')
+            raise NotFoundError('Usuário não encontrado')
         usuario.deletar()
