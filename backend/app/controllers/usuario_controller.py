@@ -5,6 +5,7 @@ from app.services.usuario.buscar_usuario_service import BuscarUsuarioService
 from app.services.usuario.atualizar_usuario_service import AtualizarUsuarioService
 from app.services.usuario.deletar_usuario_service import DeletarUsuarioService
 from app.services.usuario.promover_usuario_service import PromoverUsuarioService
+from app.repositories.usuario_repository import UsuarioRepository
 from app.middlewares.auth_middleware import token_requerido, admin_requerido
 
 usuario_bp = Blueprint('usuario', __name__, url_prefix='/usuarios')
@@ -18,7 +19,10 @@ class UsuarioController:
     @admin_requerido
     def listar():
         usuarios = ListarUsuariosService.executar()
-        return jsonify([u.to_dict() for u in usuarios]), 200
+        return jsonify([
+            {**u.to_dict(), 'admin_padrao': UsuarioRepository.eh_admin_padrao(u)}
+            for u in usuarios
+        ]), 200
 
     @staticmethod
     @token_requerido
@@ -37,7 +41,7 @@ class UsuarioController:
     @token_requerido
     @admin_requerido
     def deletar(id):
-        DeletarUsuarioService.executar(id)
+        DeletarUsuarioService.executar(id, g.usuario_atual)
         return '', 204
 
     @staticmethod
@@ -45,7 +49,7 @@ class UsuarioController:
     @admin_requerido
     def promover(id):
         dados = request.get_json() or {}
-        usuario = PromoverUsuarioService.executar(id, dados.get('role'))
+        usuario = PromoverUsuarioService.executar(id, dados.get('role'), g.usuario_atual)
         return jsonify(usuario.to_dict()), 200
 
 

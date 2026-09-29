@@ -15,10 +15,17 @@ class AtualizarUsuarioService:
         if usuario_atual.role != 'admin' and usuario.id_usuario != usuario_atual.id_usuario:
             raise ForbiddenError('Você só pode alterar seus próprios dados')
 
+        novo_email = dados.get('email')
+
+        if UsuarioRepository.eh_admin_padrao(usuario):
+            if usuario.id_usuario != usuario_atual.id_usuario:
+                raise ForbiddenError('O admin padrão não pode ser editado por outros usuários')
+            if novo_email and novo_email != usuario.email:
+                raise ForbiddenError('O e-mail do admin padrão não pode ser alterado')
+
         if 'nome' in dados and not dados.get('nome'):
             raise ValidationError('Nome é obrigatório')
 
-        novo_email = dados.get('email')
         if novo_email and novo_email != usuario.email:
             existente = UsuarioRepository.buscar_por_email(novo_email)
             if existente is not None:

@@ -2,6 +2,8 @@ const API = 'http://localhost:5000';
 const TOKEN_KEY = 'assinify_token';
 const LOGO_TOKEN = 'pk_aFebUAI6TXi3KllA2BUauA';
 
+// Gera a URL do logo da empresa usando o domínio baseado no primeiro nome do serviço
+// e a API do logo.dev.
 function logoUrl(nome) {
   const limpo = nome.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')

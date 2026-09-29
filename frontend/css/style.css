@@ -505,7 +505,7 @@ tbody tr:hover { background: var(--bg); }
   line-height: 1.5;
 }
 
-/* Preview card: a shrunk, non-interactive echo of the real dashboard */
+/* Card de pré-visualização */
 .auth-preview-card {
   background: rgba(255, 255, 255, 0.97);
   border-radius: 16px;
@@ -545,7 +545,7 @@ tbody tr:hover { background: var(--bg); }
   .auth-panel-form { padding: 40px 24px; }
 }
 
-/* Sidebar user footer with logout */
+/* Sidebar user footer com logout */
 .sidebar-footer-row { display: flex; align-items: center; gap: 10px; width: 100%; }
 .btn-logout {
   margin-left: auto;

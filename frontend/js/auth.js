@@ -86,7 +86,7 @@ async function registrar(event) {
       return;
     }
 
-    // Cadastro não retorna token — loga em seguida com as mesmas credenciais.
+    // cadastro não retorna token, então precisamos logar o usuário em seguida.
     const loginRes = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -108,12 +108,12 @@ async function registrar(event) {
   }
 }
 
-// Se já existe uma sessão, não faz sentido ver a tela de login/registro de novo.
+// se já existe uma sessão, não faz sentido ver a tela de login/registro de novo
 if (getToken()) {
   window.location.href = 'dashboard.html';
 }
 
-// Usa o mesmo mecanismo do Logo.dev já usado no dashboard (logoUrl, em api.js)
+// usa o mesmo mecanismo do Logo.dev já usado no dashboard (logoUrl, em api.js)
 // para os logos ilustrativos do preview card, em vez de uma implementação paralela.
 document.querySelectorAll('.auth-preview-logo[data-nome]').forEach((el) => {
   const img = el.querySelector('img');

@@ -49,11 +49,8 @@ class AtualizarAssinaturaService:
             categoria = Categoria.buscar_por_id(dados['id_categoria'])
             if categoria is None:
                 raise NotFoundError('Categoria não encontrada')
-            if (
-                usuario_atual.role != 'admin'
-                and categoria.id_usuario != usuario_atual.id_usuario
-            ):
-                raise ForbiddenError('Você só pode usar suas próprias categorias')
+            if categoria.id_usuario != assinatura.id_usuario:
+                raise ForbiddenError('A categoria deve pertencer ao dono da assinatura')
 
         assinatura.atualizar(
             nome_servico=dados.get('nome_servico'),

@@ -1,4 +1,4 @@
-/* Logo.dev: sem fallback textual. Se a imagem falhar, o espaço permanece limpo. */
+/* Logo.dev: sem fallback textual. se a imagem falhar, o espaço permanece limpo. */
 .auth-preview-logo {
   display: flex;
   align-items: center;
