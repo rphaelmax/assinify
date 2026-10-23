@@ -1,10 +1,12 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from sqlalchemy import inspect, text
+from sqlalchemy.types import Float
+from werkzeug.exceptions import HTTPException
 
 from app.config import Config
 from app.extensions import db
-from app.exceptions import AppError
+from app.exceptions import AppError, ValidationError
 
 from app.controllers.auth_controller import auth_bp
 from app.controllers.usuario_controller import usuario_bp
@@ -28,6 +30,26 @@ def create_app():
     def tratar_erro_app(erro):
         return jsonify({'erro': erro.mensagem}), erro.status_code
 
+    @app.errorhandler(HTTPException)
+    def tratar_erro_http(erro):
+        return jsonify({'erro': erro.description}), erro.code
+
+    @app.errorhandler(Exception)
+    def tratar_erro_inesperado(erro):
+        db.session.rollback()
+        app.logger.exception('Erro inesperado')
+        return jsonify({'erro': 'Erro interno do servidor'}), 500
+
+    @app.before_request
+    def validar_corpo_json():
+        if request.method not in ('POST', 'PUT', 'PATCH') or not request.is_json:
+            return
+        corpo = request.get_json(silent=True)
+        if corpo is None and request.get_data():
+            raise ValidationError('JSON inválido')
+        if corpo is not None and not isinstance(corpo, dict):
+            raise ValidationError('O corpo da requisição deve ser um objeto JSON')
+
     with app.app_context():
         _garantir_schema_atual()
         db.create_all()
@@ -44,11 +66,24 @@ def _garantir_schema_atual():
     if 'assinaturas' not in tabelas:
         return
 
-    colunas = {coluna['name'] for coluna in inspector.get_columns('assinaturas')}
+    colunas = {coluna['name']: coluna['type'] for coluna in inspector.get_columns('assinaturas')}
     if 'metodo_pagamento' not in colunas:
         db.session.execute(text(
             "ALTER TABLE assinaturas ADD COLUMN metodo_pagamento "
             "VARCHAR(30) NOT NULL DEFAULT 'cartao_credito'"
+        ))
+        db.session.commit()
+
+    if 'periodicidade' not in colunas:
+        db.session.execute(text(
+            "ALTER TABLE assinaturas ADD COLUMN periodicidade "
+            "VARCHAR(20) NOT NULL DEFAULT 'mensal'"
+        ))
+        db.session.commit()
+
+    if db.engine.dialect.name == 'mysql' and isinstance(colunas['valor_mensal'], Float):
+        db.session.execute(text(
+            "alter table assinaturas modify valor_mensal decimal(10,2) not null"
         ))
         db.session.commit()
 

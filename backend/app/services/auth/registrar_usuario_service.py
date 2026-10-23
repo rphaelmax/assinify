@@ -2,6 +2,7 @@ from app.models.usuario import Usuario
 from app.repositories.usuario_repository import UsuarioRepository
 from app.security.senha import hashear_senha
 from app.exceptions import ValidationError
+from app.validacao import texto, validar_email, validar_forca_senha
 from app.models.categoria import Categoria
 
 CATEGORIAS_PADRAO = [
@@ -24,18 +25,15 @@ class RegistrarUsuarioService:
 
     @staticmethod
     def executar(dados):
-        nome = dados.get('nome')
-        email = dados.get('email')
+        nome = texto(dados.get('nome'), 'Nome', 100)
+        email = validar_email(dados.get('email'))
         senha = dados.get('senha')
 
-        if not nome:
-            raise ValidationError('Nome é obrigatório')
-        if not email:
-            raise ValidationError('Email é obrigatório')
-        if not senha or len(senha) < SENHA_MIN_CARACTERES:
+        if not isinstance(senha, str) or len(senha) < SENHA_MIN_CARACTERES:
             raise ValidationError(
                 f'Senha é obrigatória e deve ter ao menos {SENHA_MIN_CARACTERES} caracteres'
             )
+        validar_forca_senha(senha, minimo_nivel=1)
 
         if UsuarioRepository.buscar_por_email(email) is not None:
             raise ValidationError('Já existe um usuário cadastrado com esse email')

@@ -1,5 +1,5 @@
 from app.models.categoria import Categoria
-from app.exceptions import ValidationError
+from app.validacao import texto
 
 
 class CriarCategoriaService:
@@ -7,11 +7,11 @@ class CriarCategoriaService:
     def executar(dados, id_usuario):
         """id_usuario vem do usuário autenticado (token), nunca do payload
         enviado pelo cliente — cada categoria pertence a quem a criou."""
-        if not dados.get('nome_categoria'):
-            raise ValidationError('Nome da categoria é obrigatório')
+        nome_categoria = texto(dados.get('nome_categoria'), 'Nome da categoria', 100)
+        descricao = texto(dados.get('descricao'), 'Descrição', 255, obrigatorio=False)
         categoria = Categoria(
-            nome_categoria=dados['nome_categoria'],
-            descricao=dados.get('descricao'),
+            nome_categoria=nome_categoria,
+            descricao=descricao,
             id_usuario=id_usuario
         )
         categoria.salvar()

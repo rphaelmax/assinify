@@ -1,3 +1,15 @@
+function onSenhaRegistroInput() {
+  if (typeof renderizarForcaSenha === 'function') {
+    const nivel = renderizarForcaSenha('input-senha', 'senha-forca-registro-fill', 'senha-forca-registro-text', 'senha-forca-registro');
+    const dica = document.getElementById('senha-dica');
+    if (dica) {
+      if (!document.getElementById('input-senha').value) { dica.style.display='none'; }
+      else if (nivel <= 1) { dica.textContent = 'Tente combinar letras maiúsculas, números e símbolos para fortalecer.'; dica.style.display=''; }
+      else dica.style.display='none';
+    }
+  }
+}
+
 function mostrarErro(mensagem) {
   const el = document.getElementById('auth-error');
   el.textContent = mensagem;
@@ -65,6 +77,10 @@ async function registrar(event) {
   }
   if (senha.length < 6) {
     mostrarErro('A senha deve ter ao menos 6 caracteres.');
+    return;
+  }
+  if (typeof calcularForcaSenha === 'function' && calcularForcaSenha(senha).nivel === 0) {
+    mostrarErro('Senha muito fraca. Tente uma combinação mais forte (ex.: letras, números e símbolos).');
     return;
   }
   if (senha !== confirmarSenha) {

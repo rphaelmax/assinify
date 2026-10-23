@@ -13,7 +13,8 @@ class Usuario(db.Model):
     role = db.Column(db.String(20), nullable=False, default='user')
     data_cadastro = db.Column(db.Date, default=date.today)
 
-    assinaturas = db.relationship('Assinatura', backref='usuario', lazy=True)
+    assinaturas = db.relationship('Assinatura', backref='usuario', lazy=True, cascade='all, delete-orphan')
+    categorias = db.relationship('Categoria', backref='usuario', lazy=True, cascade='all, delete-orphan')
 
     def salvar(self):
         db.session.add(self)

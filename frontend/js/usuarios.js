@@ -1,11 +1,12 @@
 let editandoId = null;
 let usuarioAtual = null;
+let listaUsuarios = [];
 
 async function carregarUsuarios() {
   try {
     const res = await apiFetch('/usuarios');
-    const usuarios = await res.json();
-    renderizarTabela(usuarios);
+    listaUsuarios = await res.json();
+    renderizarTabela(listaUsuarios);
   } catch {
     document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty">Erro ao carregar usuários.</td></tr>';
   }
@@ -28,13 +29,13 @@ function renderizarTabela(usuarios) {
     return `
     <tr>
       <td>${u.id_usuario}</td>
-      <td><strong>${u.nome}</strong>${ehVoceMesmo ? ' <span style="color:var(--text-muted);font-weight:400;">(você)</span>' : ''}${ehPadrao ? ' <span style="color:var(--text-muted);font-weight:400;">(padrão)</span>' : ''}</td>
-      <td>${u.email}</td>
+      <td><strong>${escapar(u.nome)}</strong>${ehVoceMesmo ? ' <span style="color:var(--text-muted);font-weight:400;">(você)</span>' : ''}${ehPadrao ? ' <span style="color:var(--text-muted);font-weight:400;">(padrão)</span>' : ''}</td>
+      <td>${escapar(u.email)}</td>
       <td><span class="role-badge role-badge-${u.role}">${u.role === 'admin' ? 'Admin' : 'Usuário'}</span></td>
       <td>
         <div style="display:flex;gap:6px;">
           ${podeEditar ? `
-          <button class="btn-icon" title="Editar" onclick="abrirModalEditar(${u.id_usuario}, '${u.nome}', '${u.email}', ${ehPadrao})">
+          <button class="btn-icon" title="Editar" onclick="abrirModalEditar(${u.id_usuario})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>` : ''}
           ${podeGerenciar ? `
@@ -50,12 +51,14 @@ function renderizarTabela(usuarios) {
   }).join('');
 }
 
-function abrirModalEditar(id, nome, email, ehPadrao = false) {
+function abrirModalEditar(id) {
+  const u = listaUsuarios.find(x => x.id_usuario === id);
+  if (!u) return;
   editandoId = id;
   document.getElementById('modal-title').textContent = 'Editar usuário';
-  document.getElementById('input-nome').value = nome;
-  document.getElementById('input-email').value = email;
-  document.getElementById('input-email').disabled = ehPadrao;
+  document.getElementById('input-nome').value = u.nome;
+  document.getElementById('input-email').value = u.email;
+  document.getElementById('input-email').disabled = u.admin_padrao === true;
   document.getElementById('modal').classList.add('open');
 }
 
@@ -110,7 +113,7 @@ async function alternarRole(id, novaRole) {
 }
 
 async function excluir(id) {
-  if (!confirm('Deseja excluir este usuário?')) return;
+  if (!confirm('Deseja excluir este usuário? Todas as categorias e assinaturas dele também serão excluídas.')) return;
   try {
     const res = await apiFetch(`/usuarios/${id}`, { method: 'DELETE' });
     if (res.ok) carregarUsuarios();

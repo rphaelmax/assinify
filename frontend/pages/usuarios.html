@@ -1,91 +1,136 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Assinify — Usuários</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+    rel="stylesheet" />
+  <meta name="theme-color" content="#2563EB" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="../icons/icon-192.png" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/tema.js"></script>
 </head>
+
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-logo">Assin<span>ify</span></div>
-  <nav>
-    <a class="nav-item" href="dashboard.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Início
-    </a>
-    <div class="nav-section">Gerenciar</div>
-    <a class="nav-item" href="categorias.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-      Categorias
-    </a>
-    <a class="nav-item active" href="usuarios.html" id="nav-usuarios">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Usuários
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="sidebar-footer-row">
-      <div class="avatar" id="sidebar-avatar">?</div>
-      <div>
-        <div class="avatar-name" id="sidebar-nome">Carregando...</div>
+  <aside class="sidebar">
+    <div class="sidebar-logo">Assin<span>ify</span></div>
+    <nav>
+      <a class="nav-item" href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        Início
+      </a>
+      <div class="nav-section">Gerenciar</div>
+      <a class="nav-item" href="categorias.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        Categorias
+      </a>
+      <a class="nav-item" href="perfil.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        Meu perfil
+      </a>
+      <a class="nav-item active" href="usuarios.html" id="nav-usuarios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+          <path d="M16 11l2 2 4-4" />
+        </svg>
+        Usuários
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-row">
+        <div class="avatar" id="sidebar-avatar">?</div>
+        <div>
+          <div class="avatar-name" id="sidebar-nome">Carregando...</div>
+        </div>
+        <button class="btn-tema" id="btn-tema" onclick="alternarTema()" aria-label="Alternar tema">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="5" />
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+        <button class="btn-logout" title="Sair" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
       </div>
-      <button class="btn-logout" title="Sair" onclick="logout()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
     </div>
-  </div>
-</aside>
+  </aside>
 
-<main class="main">
-  <div class="topbar">
-    <span class="topbar-title">Usuários</span>
-  </div>
+  <main class="main">
+    <div class="topbar">
+      <span class="topbar-title">Usuários</span>
+    </div>
 
-  <div class="content">
-    <div class="table-card">
-      <div class="table-toolbar">
-        <span class="card-title">Todos os usuários</span>
+    <div class="content">
+      <div class="table-card">
+        <div class="table-toolbar">
+          <span class="card-title">Todos os usuários</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Permissão</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr>
+              <td colspan="5" class="loading">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nome</th>
-            <th>E-mail</th>
-            <th>Permissão</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <tr><td colspan="5" class="loading">Carregando...</td></tr>
-        </tbody>
-      </table>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="modal" onclick="fecharModalFora(event)">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Editar usuário</div>
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input class="form-input" type="text" id="input-nome" placeholder="Ex: Raphael" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" id="input-email" placeholder="Ex: raphael@email.com" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-save" onclick="salvar()">Salvar</button>
+      </div>
     </div>
   </div>
-</main>
 
-<div class="modal-overlay" id="modal" onclick="fecharModalFora(event)">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">Editar usuário</div>
-    <div class="form-group">
-      <label class="form-label">Nome</label>
-      <input class="form-input" type="text" id="input-nome" placeholder="Ex: Raphael" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">E-mail</label>
-      <input class="form-input" type="email" id="input-email" placeholder="Ex: raphael@email.com" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-save" onclick="salvar()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<script src="../js/api.js"></script>
-<script src="../js/usuarios.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/usuarios.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('../sw.js').catch(() => { });
+    }
+  </script>
 </body>
+
 </html>

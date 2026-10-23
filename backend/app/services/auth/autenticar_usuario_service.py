@@ -10,7 +10,7 @@ class AutenticarUsuarioService:
         email = dados.get('email')
         senha = dados.get('senha')
 
-        if not email or not senha:
+        if not isinstance(email, str) or not isinstance(senha, str) or not email or not senha:
             raise ValidationError('Email e senha são obrigatórios')
 
         usuario = UsuarioRepository.buscar_por_email(email)

@@ -1,125 +1,243 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Assinify — Início</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+    rel="stylesheet" />
+  <meta name="theme-color" content="#2563EB" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="../icons/icon-192.png" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script src="../js/tema.js"></script>
 </head>
+
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-logo">Assin<span>ify</span></div>
-  <nav>
-    <a class="nav-item active" href="dashboard.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Início
-    </a>
-    <div class="nav-section">Gerenciar</div>
-    <a class="nav-item" href="categorias.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-      Categorias
-    </a>
-    <a class="nav-item" href="usuarios.html" id="nav-usuarios">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Usuários
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="sidebar-footer-row">
-      <div class="avatar" id="sidebar-avatar">?</div>
-      <div>
-        <div class="avatar-name" id="sidebar-nome">Carregando...</div>
-      </div>
-      <button class="btn-logout" title="Sair" onclick="logout()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
-    </div>
-  </div>
-</aside>
-
-<main class="main">
-  <div class="topbar">
-    <span class="topbar-title">Assinaturas</span>
-    <div class="topbar-actions">
-      <div class="btn-notif">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <div class="dot"></div>
-      </div>
-      <button class="btn-primary" onclick="abrirModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nova assinatura
-      </button>
-    </div>
-  </div>
-
-  <div class="content">
-    <div class="summary-card">
-      <div>
-        <div class="summary-label">Gasto mensal estimado</div>
-        <div class="summary-value" id="total-mensal">R$ 0,00</div>
-        <div class="summary-badge">somente assinaturas ativas</div>
-      </div>
-      <button class="summary-add" onclick="abrirModal()">+</button>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Próximas renovações</span>
-          <span class="summary-hint">Próximos vencimentos</span>
+  <aside class="sidebar">
+    <div class="sidebar-logo">Assin<span>ify</span></div>
+    <nav>
+      <a class="nav-item active" href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        Início
+      </a>
+      <div class="nav-section">Gerenciar</div>
+      <a class="nav-item" href="categorias.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        Categorias
+      </a>
+      <a class="nav-item" href="perfil.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        Meu perfil
+      </a>
+      <a class="nav-item" href="usuarios.html" id="nav-usuarios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+          <path d="M16 11l2 2 4-4" />
+        </svg>
+        Usuários
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-row">
+        <div class="avatar" id="sidebar-avatar">?</div>
+        <div>
+          <div class="avatar-name" id="sidebar-nome">Carregando...</div>
         </div>
-        <div id="renovacoes-list"><div class="loading">Carregando...</div></div>
+        <button class="btn-tema" id="btn-tema" onclick="alternarTema()" aria-label="Alternar tema">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="5" />
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+        <button class="btn-logout" title="Sair" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
       </div>
+    </div>
+  </aside>
 
-      <div class="card subscriptions-card">
-        <div class="sub-header">
-          <span class="card-title">Minhas assinaturas</span>
-          <select class="filter-select" id="filtro-status" onchange="aplicarFiltro()">
-            <option value="todas">Todas</option>
-            <option value="ativa" selected>Ativas</option>
-            <option value="cancelada">Canceladas</option>
-          </select>
+  <main class="main">
+    <div class="topbar">
+      <span class="topbar-title">Assinaturas</span>
+      <div class="topbar-actions">
+        <div class="notif-wrapper" id="notif-wrapper">
+          <button class="btn-notif" id="btn-notif" onclick="toggleNotif()" aria-label="Notificações">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-dropdown-header">
+              <span class="notif-dropdown-title">Notificações</span>
+              <button class="notif-mark-read" onclick="marcarNotifsLidas()">Marcar como lidas</button>
+            </div>
+            <div id="notif-list"></div>
+          </div>
         </div>
-        <div id="assinaturas-list"><div class="loading">Carregando...</div></div>
-        <button class="btn-add-sub" onclick="abrirModal()">+ Adicionar assinatura</button>
+        <button class="btn-secondary" id="btn-exportar" onclick="exportarCSV()" title="Exportar CSV filtrado">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Exportar
+        </button>
+        <button class="btn-primary" onclick="abrirModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Nova assinatura
+        </button>
       </div>
     </div>
-  </div>
-</main>
 
-<div class="modal-overlay" id="modal" onclick="fecharModalFora(event)">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">Nova assinatura</div>
-    <div class="form-group">
-      <label class="form-label">Nome do serviço</label>
-      <input class="form-input" type="text" id="input-nome" placeholder="Ex: Netflix" />
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Valor mensal</label>
-        <input class="form-input" type="number" id="input-valor" placeholder="0,00" step="0.01" />
+    <div class="content">
+
+      <!-- Summary -->
+      <div class="summary-card">
+        <div>
+          <div class="summary-label">Gasto mensal estimado</div>
+          <div class="summary-value" id="total-mensal">R$ 0,00</div>
+          <div class="summary-badge">somente assinaturas ativas</div>
+          <div class="summary-hint" id="summary-anual-hint"
+            style="display:none; margin-top:6px; font-size:12px; opacity:.85;"></div>
+        </div>
+        <button class="summary-add" onclick="abrirModal()">+</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Renovação</label>
-        <input class="form-input" type="date" id="input-renovacao" />
+
+      <!-- Stats row -->
+      <div class="stats-row" id="stats-row" style="display:none;">
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-label">Total anual projetado</div>
+            <div class="stat-value" id="stat-anual">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-label">Média por assinatura</div>
+            <div class="stat-value" id="stat-media">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-amber">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18" />
+              <path d="M18 17V9" />
+              <path d="M13 17V5" />
+              <path d="M8 17v-3" />
+            </svg>
+          </div>
+          <div>
+            <div class="stat-label">Categoria mais cara</div>
+            <div class="stat-value" id="stat-cat-cara">—</div>
+            <div class="stat-sub" id="stat-cat-cara-sub" style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Categoria</label>
-        <select class="form-input" id="input-categoria"></select>
+
+      <!-- Charts -->
+      <div class="charts-grid" id="charts-grid" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Gasto por categoria</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-categoria"></canvas>
+          </div>
+          <div id="chart-categoria-empty" class="empty" style="display:none;">Sem dados suficientes.</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Por método de pagamento</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-pagamento"></canvas>
+          </div>
+          <div id="chart-pagamento-empty" class="empty" style="display:none;">Sem dados suficientes.</div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Plano</label>
-        <input class="form-input" type="text" id="input-plano" placeholder="Ex: Premium" />
+
+      <!-- Calendário de renovações — recolhível -->
+      <div class="card" id="card-calendario" style="display:none; margin-bottom:24px;">
+        <div class="card-header cal-header-toggle" onclick="toggleCalendario()" role="button" tabindex="0"
+          aria-label="Expandir ou recolher calendário">
+          <span class="card-title">Calendário de renovações</span>
+          <div class="cal-header-actions" onclick="event.stopPropagation()">
+            <div class="cal-nav">
+              <button class="btn-icon" onclick="calendarioAnterior()" aria-label="Mês anterior"
+                title="Mês anterior">‹</button>
+              <span id="cal-mes-ano" class="cal-mes-ano"></span>
+              <button class="btn-icon" onclick="calendarioProximo()" aria-label="Próximo mês"
+                title="Próximo mês">›</button>
+            </div>
+            <button class="btn-icon cal-toggle-btn" id="btn-cal-toggle" onclick="toggleCalendario()"
+              aria-expanded="false" title="Expandir calendário">
+              <svg class="cal-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="cal-resumo" class="cal-resumo"></div>
+        <div id="calendario-grid"></div>
+        <div id="calendario-legenda" class="cal-legenda"></div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Método de pagamento</label>
-        <select class="form-input" id="input-pagamento">
+
+      <!-- Busca e filtros -->
+      <div class="filter-bar">
+        <div class="filter-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="filtro-busca" placeholder="Buscar por nome do serviço..." oninput="onBuscaInput()" />
+          <button class="filter-clear" id="btn-clear-busca" onclick="limparBusca()" style="display:none;"
+            title="Limpar">×</button>
+        </div>
+        <select class="filter-select" id="filtro-categoria" onchange="aplicarFiltros()">
+          <option value="">Todas as categorias</option>
+        </select>
+        <select class="filter-select" id="filtro-pagamento" onchange="aplicarFiltros()">
+          <option value="">Todos os pagamentos</option>
           <option value="cartao_credito">Cartão de crédito</option>
           <option value="cartao_debito">Cartão de débito</option>
           <option value="pix">PIX</option>
@@ -128,23 +246,145 @@
           <option value="transferencia">Transferência</option>
           <option value="outro">Outro</option>
         </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Status</label>
-        <select class="form-input" id="input-status">
-          <option value="ativa">Ativa</option>
-          <option value="cancelada">Cancelada</option>
+        <select class="filter-select" id="filtro-periodicidade" onchange="aplicarFiltros()">
+          <option value="">Todas as periodicidades</option>
+          <option value="semanal">Semanal</option>
+          <option value="mensal">Mensal</option>
+          <option value="anual">Anual</option>
+        </select>
+        <select class="filter-select" id="filtro-ordenar" onchange="aplicarFiltros()">
+          <option value="data_renovacao_asc">Renovação ↑</option>
+          <option value="data_renovacao_desc">Renovação ↓</option>
+          <option value="valor_mensal_desc">Maior valor</option>
+          <option value="valor_mensal_asc">Menor valor</option>
+          <option value="nome_servico_asc">Nome A-Z</option>
+          <option value="nome_servico_desc">Nome Z-A</option>
         </select>
       </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Próximas renovações</span>
+            <span class="summary-hint">Próximos vencimentos</span>
+          </div>
+          <div id="renovacoes-list">
+            <div class="loading">Carregando...</div>
+          </div>
+        </div>
+
+        <div class="card subscriptions-card">
+          <div class="sub-header">
+            <span class="card-title">Minhas assinaturas</span>
+            <select class="filter-select" id="filtro-status" onchange="aplicarFiltros()">
+              <option value="todas">Todas</option>
+              <option value="ativa" selected>Ativas</option>
+              <option value="cancelada">Canceladas</option>
+            </select>
+          </div>
+          <div id="assinaturas-list">
+            <div class="loading">Carregando...</div>
+          </div>
+          <div id="paginacao" class="paginacao" style="display:none;">
+            <button class="btn-cancel" id="btn-pag-anterior" onclick="paginaAnterior()">Anterior</button>
+            <span id="paginacao-info" class="paginacao-info"></span>
+            <button class="btn-cancel" id="btn-pag-proxima" onclick="proximaPagina()">Próxima</button>
+          </div>
+          <button class="btn-add-sub" onclick="abrirModal()">+ Adicionar assinatura</button>
+        </div>
+      </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-save" onclick="salvarAssinatura()">Salvar</button>
+  </main>
+
+  <div class="modal-overlay" id="modal" onclick="fecharModalFora(event)">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Nova assinatura</div>
+      <div class="form-group">
+        <label class="form-label">Nome do serviço</label>
+        <input class="form-input" type="text" id="input-nome" placeholder="Ex: Netflix" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor</label>
+          <input class="form-input" type="number" id="input-valor" placeholder="0,00" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Periodicidade</label>
+          <select class="form-input" id="input-periodicidade">
+            <option value="mensal">Mensal</option>
+            <option value="semanal">Semanal</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Renovação</label>
+          <input class="form-input" type="date" id="input-renovacao" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Categoria</label>
+          <select class="form-input" id="input-categoria"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plano</label>
+          <input class="form-input" type="text" id="input-plano" placeholder="Ex: Premium" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Método de pagamento</label>
+          <select class="form-input" id="input-pagamento">
+            <option value="cartao_credito">Cartão de crédito</option>
+            <option value="cartao_debito">Cartão de débito</option>
+            <option value="pix">PIX</option>
+            <option value="boleto">Boleto</option>
+            <option value="debito_automatico">Débito automático</option>
+            <option value="transferencia">Transferência</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" id="input-status">
+            <option value="ativa">Ativa</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:2px;">
+          <div style="font-size:12px;color:var(--text-muted);"><span id="preview-anualizado-valor">—</span> / ano</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-save" onclick="salvarAssinatura()">Salvar</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="../js/api.js"></script>
-<script src="../js/dashboard.js"></script>
+  <!-- Modal Histórico / Timeline -->
+  <div class="modal-overlay" id="modal-historico" onclick="fecharHistoricoFora(event)">
+    <div class="modal" style="max-width:520px; max-height:80vh; overflow-y:auto;">
+      <div class="modal-title">Histórico de alterações</div>
+      <div id="historico-nome" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;"></div>
+      <div id="timeline-historico"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharHistorico()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/calendario.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('../sw.js').catch(() => { });
+    }
+  </script>
 </body>
+
 </html>

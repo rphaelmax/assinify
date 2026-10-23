@@ -13,6 +13,22 @@ function logoUrl(nome) {
   return `https://img.logo.dev/${limpo}.com?token=${LOGO_TOKEN}&format=webp&retina=true`;
 }
 
+function escapar(valor) {
+  return String(valor ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (img.tagName === 'IMG' && img.dataset.inicial !== undefined) {
+    img.parentElement.textContent = img.dataset.inicial;
+  }
+}, true);
+
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -86,7 +102,7 @@ function popularSidebar(usuario) {
   }
 }
 
-/** Bloqueia o acesso a uma página restrita a admin, redirecionando não-admins. */
+/** Bloqueia o acesso a uma página restrita a admin, redirecionando não-admins */
 function exigirAdmin(usuario) {
   if (usuario.role !== 'admin') {
     window.location.href = 'dashboard.html';

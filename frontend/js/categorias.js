@@ -1,11 +1,12 @@
 let editandoId = null;
 let usuarioAtual = null;
+let listaCategorias = [];
 
 async function carregarCategorias() {
   try {
     const res = await apiFetch('/categorias');
-    const categorias = await res.json();
-    renderizarTabela(categorias);
+    listaCategorias = await res.json();
+    renderizarTabela(listaCategorias);
   } catch {
     document.getElementById('tbody').innerHTML = '<tr><td colspan="4" class="empty">Erro ao carregar categorias.</td></tr>';
   }
@@ -21,11 +22,11 @@ function renderizarTabela(categorias) {
   tbody.innerHTML = categorias.map(c => `
     <tr>
       <td>${c.id_categoria}</td>
-      <td><strong>${c.nome_categoria}</strong></td>
-      <td>${c.descricao || '—'}</td>
+      <td><strong>${escapar(c.nome_categoria)}</strong></td>
+      <td>${escapar(c.descricao || '—')}</td>
       <td>
         <div style="display:flex;gap:6px;">
-          <button class="btn-icon" title="Editar" onclick="abrirModalEditar(${c.id_categoria}, '${c.nome_categoria}', '${c.descricao || ''}')">
+          <button class="btn-icon" title="Editar" onclick="abrirModalEditar(${c.id_categoria})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
           <button class="btn-icon danger" title="Excluir" onclick="excluir(${c.id_categoria})">
@@ -44,11 +45,13 @@ function abrirModal() {
   document.getElementById('modal').classList.add('open');
 }
 
-function abrirModalEditar(id, nome, descricao) {
+function abrirModalEditar(id) {
+  const c = listaCategorias.find(x => x.id_categoria === id);
+  if (!c) return;
   editandoId = id;
   document.getElementById('modal-title').textContent = 'Editar categoria';
-  document.getElementById('input-nome').value = nome;
-  document.getElementById('input-descricao').value = descricao;
+  document.getElementById('input-nome').value = c.nome_categoria;
+  document.getElementById('input-descricao').value = c.descricao || '';
   document.getElementById('modal').classList.add('open');
 }
 
