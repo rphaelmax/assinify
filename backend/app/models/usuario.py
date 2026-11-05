@@ -12,6 +12,7 @@ class Usuario(db.Model):
     senha_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='user')
     data_cadastro = db.Column(db.Date, default=date.today)
+    foto_perfil = db.Column(db.String(100), nullable=True)
 
     assinaturas = db.relationship('Assinatura', backref='usuario', lazy=True, cascade='all, delete-orphan')
     categorias = db.relationship('Categoria', backref='usuario', lazy=True, cascade='all, delete-orphan')
@@ -33,6 +34,12 @@ class Usuario(db.Model):
         db.session.commit()
         return self
 
+    def definir_foto(self, nome_arquivo):
+        """Grava (ou limpa, com None) o nome do arquivo da foto de perfil."""
+        self.foto_perfil = nome_arquivo
+        db.session.commit()
+        return self
+
     def deletar(self):
         db.session.delete(self)
         db.session.commit()
@@ -51,5 +58,6 @@ class Usuario(db.Model):
             'nome': self.nome,
             'email': self.email,
             'role': self.role,
-            'data_cadastro': self.data_cadastro.isoformat() if self.data_cadastro else None
+            'data_cadastro': self.data_cadastro.isoformat() if self.data_cadastro else None,
+            'foto_url': f'/uploads/avatars/{self.foto_perfil}' if self.foto_perfil else None
         }

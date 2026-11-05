@@ -1,5 +1,6 @@
 const API = 'http://localhost:5000';
 const TOKEN_KEY = 'assinify_token';
+const ROLE_KEY = 'assinify_role'; // cache da role só para o menu não piscar; a API continua sendo a fonte da verdade
 const LOGO_TOKEN = 'pk_aFebUAI6TXi3KllA2BUauA';
 
 // Gera a URL do logo da empresa usando o domínio baseado no primeiro nome do serviço
@@ -35,11 +36,22 @@ function getToken() {
 
 function salvarToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(ROLE_KEY); // novo login: descarta a role do usuário anterior
 }
 
 function limparSessao() {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ROLE_KEY);
 }
+
+/** Mostra o item "Usuários" só para admin. No HTML ele nasce oculto (display:none). */
+function aplicarMenuAdmin(role) {
+  const navUsuarios = document.getElementById('nav-usuarios');
+  if (navUsuarios) navUsuarios.style.display = role === 'admin' ? '' : 'none';
+}
+
+// Aplica já no carregamento usando a role em cache (evita o item aparecer/sumir ao trocar de aba)
+try { aplicarMenuAdmin(localStorage.getItem(ROLE_KEY)); } catch { }
 
 function logout() {
   limparSessao();
@@ -55,7 +67,8 @@ async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
 
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (options.body && !headers['Content-Type']) {
+  // FormData (upload) define o próprio Content-Type, com o boundary
+  if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -89,17 +102,35 @@ async function protegerPagina() {
   return usuario;
 }
 
+/**
+ * Preenche um avatar: foto, se o usuário tiver, ou a inicial do nome.
+ * Se a imagem falhar ao carregar, o listener global de 'error' (acima)
+ * volta para a inicial via data-inicial.
+ */
+function renderizarAvatar(el, usuario) {
+  if (!el) return;
+  const inicial = usuario.nome[0].toUpperCase();
+  el.textContent = '';
+  if (!usuario.foto_url) {
+    el.textContent = inicial;
+    return;
+  }
+  const img = document.createElement('img');
+  img.alt = '';
+  img.dataset.inicial = inicial;
+  img.src = `${API}${usuario.foto_url}`;
+  el.appendChild(img);
+}
+
 function popularSidebar(usuario) {
   const avatar = document.getElementById('sidebar-avatar');
   const nome = document.getElementById('sidebar-nome');
-  if (avatar) avatar.textContent = usuario.nome[0].toUpperCase();
+  renderizarAvatar(avatar, usuario);
   if (nome) nome.textContent = usuario.nome;
 
   // O item de menu "Usuários" só faz sentido pra quem administra a plataforma
-  const navUsuarios = document.getElementById('nav-usuarios');
-  if (navUsuarios && usuario.role !== 'admin') {
-    navUsuarios.remove();
-  }
+  aplicarMenuAdmin(usuario.role);
+  try { localStorage.setItem(ROLE_KEY, usuario.role); } catch { }
 }
 
 /** Bloqueia o acesso a uma página restrita a admin, redirecionando não-admins */

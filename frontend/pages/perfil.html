@@ -29,6 +29,13 @@
         </svg>
         Início
       </a>
+      <a class="nav-item" href="estatisticas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18" />
+          <path d="M7 15l4-4 3 3 5-6" />
+        </svg>
+        Estatísticas
+      </a>
       <div class="nav-section">Gerenciar</div>
       <a class="nav-item" href="categorias.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -43,7 +50,7 @@
         </svg>
         Meu perfil
       </a>
-      <a class="nav-item" href="usuarios.html" id="nav-usuarios">
+      <a class="nav-item" href="usuarios.html" id="nav-usuarios" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
@@ -90,6 +97,17 @@
             <div class="profile-email" id="profile-email">—</div>
             <span class="role-badge" id="profile-role" style="margin-top:6px;display:inline-block;"></span>
           </div>
+        </div>
+        <div class="profile-foto">
+          <div id="foto-feedback" class="form-feedback"></div>
+          <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp" hidden
+            onchange="enviarFoto(this)" />
+          <div class="profile-foto-acoes">
+            <button type="button" class="btn-cancel" onclick="escolherFoto()">Alterar foto</button>
+            <button type="button" class="btn-cancel" id="btn-remover-foto" onclick="removerFoto()"
+              style="display:none;">Remover foto</button>
+          </div>
+          <p class="profile-foto-dica">JPG, PNG ou WebP, até 2 MB. A imagem é recortada em formato quadrado.</p>
         </div>
       </div>
 

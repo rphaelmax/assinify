@@ -8,6 +8,63 @@ function mostrarFeedback(id, mensagem, tipo) {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
+const FOTO_MAX_BYTES = 2 * 1024 * 1024;
+const FOTO_TIPOS = ['image/jpeg', 'image/png', 'image/webp'];
+
+function escolherFoto() {
+  document.getElementById('foto-input').click();
+}
+
+async function enviarFoto(input) {
+  const arquivo = input.files[0];
+  input.value = ''; // permite escolher o mesmo arquivo de novo depois
+  if (!arquivo) return;
+
+  if (!FOTO_TIPOS.includes(arquivo.type)) {
+    mostrarFeedback('foto-feedback', 'Use uma imagem JPG, PNG ou WebP.', 'erro');
+    return;
+  }
+  if (arquivo.size > FOTO_MAX_BYTES) {
+    mostrarFeedback('foto-feedback', 'A imagem deve ter no máximo 2 MB.', 'erro');
+    return;
+  }
+
+  const form = new FormData();
+  form.append('foto', arquivo);
+
+  try {
+    const res = await apiFetch('/auth/foto', { method: 'POST', body: form });
+    const dados = await res.json();
+    if (!res.ok) {
+      mostrarFeedback('foto-feedback', dados.erro || 'Erro ao enviar a foto.', 'erro');
+      return;
+    }
+    usuarioAtual = dados;
+    popularPerfil(dados);
+    popularSidebar(dados);
+    mostrarFeedback('foto-feedback', 'Foto atualizada!', 'sucesso');
+  } catch {
+    mostrarFeedback('foto-feedback', 'Erro de conexão com a API.', 'erro');
+  }
+}
+
+async function removerFoto() {
+  try {
+    const res = await apiFetch('/auth/foto', { method: 'DELETE' });
+    const dados = await res.json();
+    if (!res.ok) {
+      mostrarFeedback('foto-feedback', dados.erro || 'Erro ao remover a foto.', 'erro');
+      return;
+    }
+    usuarioAtual = dados;
+    popularPerfil(dados);
+    popularSidebar(dados);
+    mostrarFeedback('foto-feedback', 'Foto removida.', 'sucesso');
+  } catch {
+    mostrarFeedback('foto-feedback', 'Erro de conexão com a API.', 'erro');
+  }
+}
+
 function atualizarForcaSenha() {
   renderizarForcaSenha('senha-nova', 'senha-forca-fill', 'senha-forca-text', 'senha-forca');
 }
@@ -79,7 +136,8 @@ async function alterarSenha() {
 }
 
 function popularPerfil(usuario) {
-  document.getElementById('profile-avatar').textContent = usuario.nome[0].toUpperCase();
+  renderizarAvatar(document.getElementById('profile-avatar'), usuario);
+  document.getElementById('btn-remover-foto').style.display = usuario.foto_url ? '' : 'none';
   document.getElementById('profile-nome').textContent = usuario.nome;
   document.getElementById('profile-email').textContent = usuario.email;
   const badge = document.getElementById('profile-role');

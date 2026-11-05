@@ -7,7 +7,8 @@ create table if not exists usuarios (
     email varchar(120) not null unique,
     senha_hash varchar(255) not null,
     role varchar(20) not null default 'user',
-    data_cadastro date default (current_date)
+    data_cadastro date default (current_date),
+    foto_perfil varchar(100) null
 );
 
 create table if not exists categorias (
@@ -49,3 +50,4 @@ create table if not exists historico_assinaturas (
 -- alter table assinaturas add column metodo_pagamento varchar(30) not null default 'cartao_credito';
 -- alter table assinaturas modify valor_mensal decimal(10,2) not null;
 -- alter table assinaturas add column periodicidade varchar(20) not null default 'mensal';
+-- alter table usuarios add column foto_perfil varchar(100) null;

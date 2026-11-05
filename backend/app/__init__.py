@@ -12,6 +12,7 @@ from app.controllers.auth_controller import auth_bp
 from app.controllers.usuario_controller import usuario_bp
 from app.controllers.categoria_controller import categoria_bp
 from app.controllers.assinatura_controller import assinatura_bp
+from app.controllers.upload_controller import upload_bp
 
 
 def create_app():
@@ -25,10 +26,16 @@ def create_app():
     app.register_blueprint(usuario_bp)
     app.register_blueprint(categoria_bp)
     app.register_blueprint(assinatura_bp)
+    app.register_blueprint(upload_bp)
 
     @app.errorhandler(AppError)
     def tratar_erro_app(erro):
         return jsonify({'erro': erro.mensagem}), erro.status_code
+
+    @app.errorhandler(413)
+    def tratar_arquivo_grande(erro):
+        limite_mb = app.config['AVATAR_MAX_BYTES'] // (1024 * 1024)
+        return jsonify({'erro': f'Arquivo muito grande. O limite é de {limite_mb} MB'}), 413
 
     @app.errorhandler(HTTPException)
     def tratar_erro_http(erro):
@@ -62,6 +69,14 @@ def _garantir_schema_atual():
     """Aplica pequenas evoluções de schema sem apagar dados existentes."""
     inspector = inspect(db.engine)
     tabelas = inspector.get_table_names()
+
+    if 'usuarios' in tabelas:
+        colunas_usuarios = {coluna['name'] for coluna in inspector.get_columns('usuarios')}
+        if 'foto_perfil' not in colunas_usuarios:
+            db.session.execute(text(
+                "ALTER TABLE usuarios ADD COLUMN foto_perfil VARCHAR(100) NULL"
+            ))
+            db.session.commit()
 
     if 'assinaturas' not in tabelas:
         return
