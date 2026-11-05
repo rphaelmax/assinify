@@ -298,7 +298,14 @@ function renderizarAssinaturas() {
       || document.getElementById('filtro-status').value !== 'ativa';
     container.innerHTML = temFiltro
       ? '<div class="empty">Nenhum resultado para os filtros atuais.<br><button class="link" onclick="limparTodosFiltros()" style="margin-top:8px;background:none;border:none;cursor:pointer;color:var(--blue);font-weight:600;">Limpar filtros</button></div>'
-      : '<div class="empty">Nenhuma assinatura encontrada. Que tal adicionar a primeira?</div>';
+      : `<div class="empty-state">
+          <div class="empty-state-icone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <div class="empty-state-titulo">Cadastre sua primeira assinatura</div>
+          <p class="empty-state-texto">Adicione Netflix, Spotify, a academia... O Assinify soma tudo, mostra quanto você gasta e avisa antes de cada renovação.</p>
+          <button class="btn-primary" onclick="abrirModal()">Adicionar assinatura</button>
+        </div>`;
     return;
   }
 
@@ -354,7 +361,7 @@ function getNotifsLidas() {
   try { return JSON.parse(localStorage.getItem(notifStorageKey) || '[]'); } catch { return []; }
 }
 function setNotifsLidas(chaves) {
-  try { localStorage.setItem(notifStorageKey, JSON.stringify(chaves)); } catch {}
+  try { localStorage.setItem(notifStorageKey, JSON.stringify(chaves)); } catch { }
 }
 
 function renovacoesProximas7Dias() {
@@ -456,6 +463,7 @@ function abrirModal() {
   document.getElementById('input-pagamento').value = 'cartao_credito';
   document.getElementById('input-status').value = 'ativa';
   atualizarPreviewAnualizado();
+  UI.limparErroForm('modal-erro');
   document.getElementById('modal').classList.add('open');
 }
 
@@ -473,6 +481,7 @@ function abrirModalEditar(id) {
   document.getElementById('input-status').value = a.status || 'ativa';
   atualizarPreviewAnualizado();
   document.getElementById('input-categoria').value = a.id_categoria;
+  UI.limparErroForm('modal-erro');
   document.getElementById('modal').classList.add('open');
 }
 
@@ -497,7 +506,7 @@ async function salvarAssinatura() {
   };
 
   if (!dados.nome_servico || !dados.valor_mensal || !dados.data_renovacao) {
-    alert('Preencha os campos obrigatórios.');
+    UI.erroForm('modal-erro', 'Preencha o nome, o valor e a data de renovação.');
     return;
   }
 
@@ -508,26 +517,41 @@ async function salvarAssinatura() {
 
     if (res.ok) {
       fecharModal();
+      UI.toast(editandoId ? 'Assinatura atualizada.' : 'Assinatura adicionada.', 'sucesso');
       carregarAssinaturas();
       carregarEstatisticas();
       carregarAgenda();
     } else {
       const err = await res.json();
-      alert(err.erro || 'Erro ao salvar.');
+      UI.erroForm('modal-erro', err.erro || 'Erro ao salvar.');
     }
   } catch {
-    alert('Erro de conexão com a API.');
+    UI.erroForm('modal-erro', 'Erro de conexão com a API.');
   }
 }
 
 async function excluirAssinatura(id) {
-  if (!confirm('Deseja excluir esta assinatura?')) return;
+  const a = todasAssinaturas.find(x => x.id_assinatura === id);
+  const confirmado = await UI.confirmar({
+    titulo: a ? `Excluir ${a.nome_servico}?` : 'Excluir assinatura?',
+    mensagem: 'A assinatura será removida e deixará de entrar nos cálculos de gasto. Essa ação não pode ser desfeita.',
+    textoConfirmar: 'Excluir',
+    perigo: true
+  });
+  if (!confirmado) return;
   try {
     const res = await apiFetch(`/assinaturas/${id}`, { method: 'DELETE' });
-    if (res.ok) { carregarAssinaturas(); carregarEstatisticas(); carregarAgenda(); }
-    else alert('Erro ao excluir.');
+    if (res.ok) {
+      UI.toast('Assinatura excluída.', 'sucesso');
+      carregarAssinaturas();
+      carregarEstatisticas();
+      carregarAgenda();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      UI.toast(err.erro || 'Erro ao excluir.', 'erro');
+    }
   } catch {
-    alert('Erro de conexão com a API.');
+    UI.toast('Erro de conexão com a API.', 'erro');
   }
 }
 
@@ -535,14 +559,14 @@ async function exportarCSV() {
   try {
     const qs = montarQueryString();
     const res = await apiFetch(`/assinaturas/exportar${qs}`);
-    if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.erro || 'Erro ao exportar.'); return; }
+    if (!res.ok) { const e = await res.json().catch(() => ({})); UI.toast(e.erro || 'Erro ao exportar.', 'erro'); return; }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'assinaturas.csv';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch { alert('Erro de conexão ao exportar.'); }
+  } catch { UI.toast('Erro de conexão ao exportar.', 'erro'); }
 }
 
 const CAMPO_LABEL = { nome_servico: 'Nome', valor_mensal: 'Valor', periodicidade: 'Periodicidade', data_renovacao: 'Renovação', status: 'Status', tipo_plano: 'Plano', metodo_pagamento: 'Pagamento', id_categoria: 'Categoria' };

@@ -1,7 +1,7 @@
 from datetime import date
 import calendar
 
-from app.models.assinatura import Assinatura
+from app.repositories.assinatura_repository import AssinaturaRepository
 from app.exceptions import ValidationError
 from app.renovacao import renovacoes_no_periodo
 
@@ -33,9 +33,7 @@ class RenovacoesAssinaturaService:
             if limite in (None, '')
             else _inteiro(limite, 'Limite', 1, LIMITE_PROXIMAS_MAXIMO)
         )
-        ativas = Assinatura.query.filter_by(
-            id_usuario=usuario_atual.id_usuario, status='ativa'
-        ).all()
+        ativas = AssinaturaRepository.listar_ativas(usuario_atual.id_usuario)
         ativas = [a for a in ativas if a.proxima_renovacao is not None]
         ativas.sort(key=lambda a: (a.proxima_renovacao, a.nome_servico.lower()))
         return ativas[:limite]
@@ -49,9 +47,7 @@ class RenovacoesAssinaturaService:
         inicio = date(ano, mes, 1)
         fim = date(ano, mes, calendar.monthrange(ano, mes)[1])
 
-        ativas = Assinatura.query.filter_by(
-            id_usuario=usuario_atual.id_usuario, status='ativa'
-        ).all()
+        ativas = AssinaturaRepository.listar_ativas(usuario_atual.id_usuario)
 
         renovacoes = []
         for a in ativas:

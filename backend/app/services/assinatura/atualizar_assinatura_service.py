@@ -1,9 +1,12 @@
+import logging
 from app.models.assinatura import Assinatura
 from app.models.categoria import Categoria
+from app.repositories.historico_repository import HistoricoRepository
 from app.exceptions import NotFoundError, ForbiddenError, ValidationError
 from app.services.assinatura.criar_assinatura_service import METODOS_PAGAMENTO
 from app.validacao import texto, valor_monetario, data_iso, exigir_id_categoria, validar_periodicidade
 
+logger = logging.getLogger(__name__)
 
 CAMPOS_HISTORICO = ('nome_servico', 'valor_mensal', 'periodicidade', 'data_renovacao', 'status', 'tipo_plano', 'metodo_pagamento', 'id_categoria')
 
@@ -62,34 +65,24 @@ class AtualizarAssinaturaService:
             id_categoria=id_categoria
         )
 
-        # Histórico: diff silencioso — não falha a atualização se o log falhar
-        try:
-            from app.models.historico_assinatura import HistoricoAssinatura
-            from app.extensions import db
-            novo = assinatura.to_dict()
-            for campo in CAMPOS_HISTORICO:
-                antigo_v = snapshot.get(campo)
-                novo_v = novo.get(campo)
-                # Normaliza para comparação textual
-                if str(antigo_v) != str(novo_v):
-                    # Só registra se o campo foi enviado na requisição
-                    if campo in dados:
-                        db.session.add(HistoricoAssinatura(
-                            id_assinatura=assinatura.id_assinatura,
-                            campo=campo,
-                            valor_antigo=str(antigo_v) if antigo_v is not None else None,
-                            valor_novo=str(novo_v) if novo_v is not None else None,
-                            id_usuario=usuario_atual.id_usuario
-                        ))
-            db.session.commit()
-        except Exception:
-            from app.extensions import db as _db
+        # Histórico: registra só os campos enviados que realmente mudaram.
+        # Falha no log não deve quebrar a atualização.
+        novo = assinatura.to_dict()
+        alteracoes = [
+            (
+                campo,
+                None if snapshot.get(campo) is None else str(snapshot[campo]),
+                None if novo.get(campo) is None else str(novo[campo])
+            )
+            for campo in CAMPOS_HISTORICO
+            if campo in dados and str(snapshot.get(campo)) != str(novo.get(campo))
+        ]
+        if alteracoes:
             try:
-                _db.session.rollback()
+                HistoricoRepository.registrar_alteracoes(
+                    assinatura.id_assinatura, usuario_atual.id_usuario, alteracoes
+                )
             except Exception:
-                pass
-            # Log silencioso — evita quebrar a atualização
-            import logging
-            logging.getLogger(__name__).exception('Falha ao gravar historico_assinaturas')
+                logger.exception('Falha ao gravar historico_assinaturas')
 
         return assinatura

@@ -29,6 +29,13 @@
         </svg>
         Início
       </a>
+      <a class="nav-item" href="estatisticas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18" />
+          <path d="M7 15l4-4 3 3 5-6" />
+        </svg>
+        Estatísticas
+      </a>
       <div class="nav-section">Gerenciar</div>
       <a class="nav-item" href="categorias.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -43,7 +50,7 @@
         </svg>
         Meu perfil
       </a>
-      <a class="nav-item" href="usuarios.html" id="nav-usuarios">
+      <a class="nav-item" href="usuarios.html" id="nav-usuarios" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
@@ -102,14 +109,14 @@
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          Exportar
+          <span class="btn-label">Exportar</span>
         </button>
         <button class="btn-primary" onclick="abrirModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Nova assinatura
+          <span class="btn-label">Nova assinatura</span>
         </button>
       </div>
     </div>
@@ -127,6 +134,82 @@
         </div>
         <button class="summary-add" onclick="abrirModal()">+</button>
       </div>
+
+      <div class="grid">
+        <div class="col-principal">
+          <div class="filter-bar">
+            <div class="filter-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="text" id="filtro-busca" placeholder="Buscar por nome do serviço..."
+                oninput="onBuscaInput()" />
+              <button class="filter-clear" id="btn-clear-busca" onclick="limparBusca()" style="display:none;"
+                title="Limpar">×</button>
+            </div>
+            <select class="filter-select" id="filtro-categoria" onchange="aplicarFiltros()">
+              <option value="">Todas as categorias</option>
+            </select>
+            <select class="filter-select" id="filtro-pagamento" onchange="aplicarFiltros()">
+              <option value="">Todos os pagamentos</option>
+              <option value="cartao_credito">Cartão de crédito</option>
+              <option value="cartao_debito">Cartão de débito</option>
+              <option value="pix">PIX</option>
+              <option value="boleto">Boleto</option>
+              <option value="debito_automatico">Débito automático</option>
+              <option value="transferencia">Transferência</option>
+              <option value="outro">Outro</option>
+            </select>
+            <select class="filter-select" id="filtro-periodicidade" onchange="aplicarFiltros()">
+              <option value="">Todas as periodicidades</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensal">Mensal</option>
+              <option value="anual">Anual</option>
+            </select>
+            <select class="filter-select" id="filtro-ordenar" onchange="aplicarFiltros()">
+              <option value="data_renovacao_asc">Renovação ↑</option>
+              <option value="data_renovacao_desc">Renovação ↓</option>
+              <option value="valor_mensal_desc">Maior valor</option>
+              <option value="valor_mensal_asc">Menor valor</option>
+              <option value="nome_servico_asc">Nome A-Z</option>
+              <option value="nome_servico_desc">Nome Z-A</option>
+            </select>
+          </div>
+
+          <div class="card subscriptions-card">
+            <div class="sub-header">
+              <span class="card-title">Minhas assinaturas</span>
+              <select class="filter-select" id="filtro-status" onchange="aplicarFiltros()">
+                <option value="todas">Todas</option>
+                <option value="ativa" selected>Ativas</option>
+                <option value="cancelada">Canceladas</option>
+              </select>
+            </div>
+            <div id="assinaturas-list">
+              <div class="loading">Carregando...</div>
+            </div>
+            <div id="paginacao" class="paginacao" style="display:none;">
+              <button class="btn-cancel" id="btn-pag-anterior" onclick="paginaAnterior()">Anterior</button>
+              <span id="paginacao-info" class="paginacao-info"></span>
+              <button class="btn-cancel" id="btn-pag-proxima" onclick="proximaPagina()">Próxima</button>
+            </div>
+            <button class="btn-add-sub" onclick="abrirModal()">+ Adicionar assinatura</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Próximas renovações</span>
+            <span class="summary-hint">Próximos vencimentos</span>
+          </div>
+          <div id="renovacoes-list">
+            <div class="loading">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="secao-titulo">Análises e projeções</div>
 
       <!-- Stats row -->
       <div class="stats-row" id="stats-row" style="display:none;">
@@ -222,83 +305,13 @@
         <div id="calendario-legenda" class="cal-legenda"></div>
       </div>
 
-      <!-- Busca e filtros -->
-      <div class="filter-bar">
-        <div class="filter-search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input type="text" id="filtro-busca" placeholder="Buscar por nome do serviço..." oninput="onBuscaInput()" />
-          <button class="filter-clear" id="btn-clear-busca" onclick="limparBusca()" style="display:none;"
-            title="Limpar">×</button>
-        </div>
-        <select class="filter-select" id="filtro-categoria" onchange="aplicarFiltros()">
-          <option value="">Todas as categorias</option>
-        </select>
-        <select class="filter-select" id="filtro-pagamento" onchange="aplicarFiltros()">
-          <option value="">Todos os pagamentos</option>
-          <option value="cartao_credito">Cartão de crédito</option>
-          <option value="cartao_debito">Cartão de débito</option>
-          <option value="pix">PIX</option>
-          <option value="boleto">Boleto</option>
-          <option value="debito_automatico">Débito automático</option>
-          <option value="transferencia">Transferência</option>
-          <option value="outro">Outro</option>
-        </select>
-        <select class="filter-select" id="filtro-periodicidade" onchange="aplicarFiltros()">
-          <option value="">Todas as periodicidades</option>
-          <option value="semanal">Semanal</option>
-          <option value="mensal">Mensal</option>
-          <option value="anual">Anual</option>
-        </select>
-        <select class="filter-select" id="filtro-ordenar" onchange="aplicarFiltros()">
-          <option value="data_renovacao_asc">Renovação ↑</option>
-          <option value="data_renovacao_desc">Renovação ↓</option>
-          <option value="valor_mensal_desc">Maior valor</option>
-          <option value="valor_mensal_asc">Menor valor</option>
-          <option value="nome_servico_asc">Nome A-Z</option>
-          <option value="nome_servico_desc">Nome Z-A</option>
-        </select>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Próximas renovações</span>
-            <span class="summary-hint">Próximos vencimentos</span>
-          </div>
-          <div id="renovacoes-list">
-            <div class="loading">Carregando...</div>
-          </div>
-        </div>
-
-        <div class="card subscriptions-card">
-          <div class="sub-header">
-            <span class="card-title">Minhas assinaturas</span>
-            <select class="filter-select" id="filtro-status" onchange="aplicarFiltros()">
-              <option value="todas">Todas</option>
-              <option value="ativa" selected>Ativas</option>
-              <option value="cancelada">Canceladas</option>
-            </select>
-          </div>
-          <div id="assinaturas-list">
-            <div class="loading">Carregando...</div>
-          </div>
-          <div id="paginacao" class="paginacao" style="display:none;">
-            <button class="btn-cancel" id="btn-pag-anterior" onclick="paginaAnterior()">Anterior</button>
-            <span id="paginacao-info" class="paginacao-info"></span>
-            <button class="btn-cancel" id="btn-pag-proxima" onclick="proximaPagina()">Próxima</button>
-          </div>
-          <button class="btn-add-sub" onclick="abrirModal()">+ Adicionar assinatura</button>
-        </div>
-      </div>
     </div>
   </main>
 
   <div class="modal-overlay" id="modal" onclick="fecharModalFora(event)">
     <div class="modal">
       <div class="modal-title" id="modal-title">Nova assinatura</div>
+      <div id="modal-erro" class="form-feedback" role="alert"></div>
       <div class="form-group">
         <label class="form-label">Nome do serviço</label>
         <input class="form-input" type="text" id="input-nome" placeholder="Ex: Netflix" />
@@ -353,9 +366,7 @@
             <option value="cancelada">Cancelada</option>
           </select>
         </div>
-        <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:2px;">
-          <div style="font-size:12px;color:var(--text-muted);"><span id="preview-anualizado-valor">—</span> / ano</div>
-        </div>
+        <div class="form-hint">Equivale a <strong id="preview-anualizado-valor">—</strong> por ano</div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
@@ -378,6 +389,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
   <script src="../js/calendario.js"></script>
   <script src="../js/dashboard.js"></script>
   <script>

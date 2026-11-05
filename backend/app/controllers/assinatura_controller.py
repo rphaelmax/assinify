@@ -7,6 +7,7 @@ from app.services.assinatura.atualizar_assinatura_service import AtualizarAssina
 from app.services.assinatura.deletar_assinatura_service import DeletarAssinaturaService
 from app.services.assinatura.estatisticas_assinatura_service import EstatisticasAssinaturaService
 from app.services.assinatura.exportar_assinaturas_service import ExportarAssinaturasService
+from app.services.assinatura.visao_geral_assinatura_service import VisaoGeralAssinaturaService
 from app.services.assinatura.listar_historico_service import ListarHistoricoService
 from app.services.assinatura.renovacoes_assinatura_service import RenovacoesAssinaturaService
 from app.middlewares.auth_middleware import token_requerido
@@ -58,6 +59,12 @@ class AssinaturaController:
     @token_requerido
     def estatisticas():
         dados = EstatisticasAssinaturaService.executar(g.usuario_atual)
+        return jsonify(dados), 200
+
+    @staticmethod
+    @token_requerido
+    def estatisticas_detalhadas():
+        dados = VisaoGeralAssinaturaService.executar(g.usuario_atual)
         return jsonify(dados), 200
 
     @staticmethod
@@ -121,6 +128,7 @@ class AssinaturaController:
 
 # IMPORTANTE: rotas literais devem vir ANTES de /<int:id> para não conflitar
 assinatura_bp.add_url_rule('/estatisticas', view_func=AssinaturaController.estatisticas, methods=['GET'])
+assinatura_bp.add_url_rule('/estatisticas/detalhadas', view_func=AssinaturaController.estatisticas_detalhadas, methods=['GET'])
 assinatura_bp.add_url_rule('/proximas', view_func=AssinaturaController.proximas, methods=['GET'])
 assinatura_bp.add_url_rule('/calendario', view_func=AssinaturaController.calendario, methods=['GET'])
 assinatura_bp.add_url_rule('/exportar', view_func=AssinaturaController.exportar, methods=['GET'])

@@ -3,8 +3,8 @@ let calRenovacoes = [];   // renovações do mês exibido, vindas de /assinatura
 let calRequisicao = 0;
 let calErro = null;       // mensagem quando a API falha (em vez de mostrar calendário vazio)    // descarta respostas antigas quando o usuário navega rápido
 
-const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESES_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const CAL_STORAGE_KEY = 'assinify_cal_expandido';
 
 function initCalendario() {
@@ -28,7 +28,7 @@ function toggleCalendario() {
     btn.setAttribute('aria-expanded', String(expandir));
     btn.title = expandir ? 'Recolher calendário' : 'Expandir calendário';
   }
-  try { localStorage.setItem(CAL_STORAGE_KEY, expandir ? '1' : '0'); } catch {}
+  try { localStorage.setItem(CAL_STORAGE_KEY, expandir ? '1' : '0'); } catch { }
 }
 
 function calendarioAnterior() {
@@ -94,7 +94,7 @@ function desenharCalendario() {
 
   const diasNoMes = new Date(calAno, calMes + 1, 0).getDate();
   const primeiroDiaSemana = new Date(calAno, calMes, 1).getDay();
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const ehMesAtual = hoje.getFullYear() === calAno && hoje.getMonth() === calMes;
 
   // Resumo sempre visível, mesmo recolhido
@@ -119,7 +119,7 @@ function desenharCalendario() {
     const temEvento = lista.length > 0;
     const cls = `cal-day${temEvento ? ' cal-day--has-event' : ''}${isHoje ? ' cal-day--hoje' : ''}`;
     const title = temEvento ? lista.map(a => a.nome_servico).join(', ') : '';
-    const dots = temEvento ? `<div class="cal-dots">${lista.slice(0,3).map(() => '<span class="cal-dot"></span>').join('')}${lista.length > 3 ? `<span class="cal-more">+${lista.length - 3}</span>` : ''}</div>` : '';
+    const dots = temEvento ? `<div class="cal-dots">${lista.slice(0, 3).map(() => '<span class="cal-dot"></span>').join('')}${lista.length > 3 ? `<span class="cal-more">+${lista.length - 3}</span>` : ''}</div>` : '';
     const tooltip = temEvento ? ` title="${escapar(title)}"` : '';
     html += `<div class="${cls}"${tooltip} onclick="mostrarDiaCalendario(${dia})"><span class="cal-num">${dia}</span>${dots}</div>`;
   }
@@ -135,6 +135,16 @@ function desenharCalendario() {
 function mostrarDiaCalendario(dia) {
   const lista = assinaturasNoDia(dia);
   if (!lista.length) return;
-  const nomes = lista.map(a => `• ${a.nome_servico} — ${formatarMoeda(a.valor_mensal)} (${a.periodicidade || 'mensal'})`).join('\n');
-  alert(`${dia} de ${MESES_PT[calMes]}:\n${nomes}`);
+  const itens = lista.map(a => `
+    <div class="renewal-item">
+      <div class="service-logo">
+        <img src="${logoUrl(a.nome_servico)}" alt="" data-inicial="${escapar(a.nome_servico[0])}" />
+      </div>
+      <div class="renewal-info">
+        <div class="renewal-name">${escapar(a.nome_servico)}</div>
+        <div class="renewal-days">${escapar(PERIODICIDADE_LABEL[a.periodicidade] || 'Mensal')}</div>
+      </div>
+      <div class="renewal-value">${formatarMoeda(a.valor_mensal)}</div>
+    </div>`).join('');
+  UI.informar({ titulo: `${dia} de ${MESES_PT[calMes]}`, corpoHtml: itens });
 }

@@ -1,16 +1,4 @@
-from sqlalchemy import func, case
-from app.extensions import db
-from app.models.assinatura import Assinatura
-from app.models.categoria import Categoria
-
-
-def _anualizado_expr():
-    """Expressão SQL que converte valor_mensal para valor anualizado segundo periodicidade."""
-    return case(
-        (Assinatura.periodicidade == 'semanal', Assinatura.valor_mensal * 52),
-        (Assinatura.periodicidade == 'anual', Assinatura.valor_mensal * 1),
-        else_=Assinatura.valor_mensal * 12
-    )
+from app.repositories.assinatura_repository import AssinaturaRepository
 
 
 class EstatisticasAssinaturaService:
@@ -18,39 +6,16 @@ class EstatisticasAssinaturaService:
 
     @staticmethod
     def executar(usuario_atual):
-        anualizado = _anualizado_expr()
-        base = Assinatura.query.filter_by(id_usuario=usuario_atual.id_usuario)
-        ativas = base.filter_by(status='ativa')
+        id_usuario = usuario_atual.id_usuario
 
-        total_anual = db.session.query(
-            func.coalesce(func.sum(anualizado), 0)
-        ).filter(
-            Assinatura.id_usuario == usuario_atual.id_usuario,
-            Assinatura.status == 'ativa'
-        ).scalar()
+        totais = AssinaturaRepository.totais(id_usuario)
+        por_categoria = AssinaturaRepository.gasto_por_categoria(id_usuario)
+        por_pagamento = AssinaturaRepository.gasto_por_pagamento(id_usuario)
 
+        total_anual = totais['total_anual']
+        total_ativas = totais['ativas']
+        total_canceladas = totais['canceladas']
         total_mensal = float(total_anual) / 12 if total_anual else 0
-
-        total_ativas = ativas.count()
-        total_canceladas = base.filter_by(status='cancelada').count()
-
-        # Gasto por categoria (só ativas) — anualizado
-        por_categoria = (
-            db.session.query(
-                Categoria.id_categoria,
-                Categoria.nome_categoria,
-                func.coalesce(func.sum(anualizado), 0).label('total'),
-                func.count(Assinatura.id_assinatura).label('qtd'),
-            )
-            .join(Assinatura, Assinatura.id_categoria == Categoria.id_categoria)
-            .filter(
-                Assinatura.id_usuario == usuario_atual.id_usuario,
-                Assinatura.status == 'ativa',
-            )
-            .group_by(Categoria.id_categoria, Categoria.nome_categoria)
-            .order_by(func.sum(anualizado).desc())
-            .all()
-        )
 
         categoria_mais_cara = None
         if por_categoria:
@@ -62,21 +27,6 @@ class EstatisticasAssinaturaService:
                 'total_mensal': float(top.total) / 12,
                 'qtd': top.qtd
             }
-
-        # Gasto por método de pagamento (só ativas) — anualizado
-        por_pagamento = (
-            db.session.query(
-                Assinatura.metodo_pagamento,
-                func.coalesce(func.sum(anualizado), 0).label('total'),
-                func.count(Assinatura.id_assinatura).label('qtd'),
-            )
-            .filter(
-                Assinatura.id_usuario == usuario_atual.id_usuario,
-                Assinatura.status == 'ativa',
-            )
-            .group_by(Assinatura.metodo_pagamento)
-            .all()
-        )
 
         media_anual = float(total_anual) / total_ativas if total_ativas else 0
 

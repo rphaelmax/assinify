@@ -1,7 +1,9 @@
 import csv
 import io
 
-from app.services.assinatura.listar_assinaturas_service import ListarAssinaturasService
+from app.repositories.assinatura_repository import AssinaturaRepository
+from app.repositories.categoria_repository import CategoriaRepository
+from app.services.assinatura.listar_assinaturas_service import normalizar_filtros
 
 
 CABECALHO_CSV = [
@@ -22,30 +24,17 @@ class ExportarAssinaturasService:
 
     @staticmethod
     def executar(usuario_atual, filtros=None):
-        from app.models.categoria import Categoria
-
         filtros = filtros or {}
-        # Remove paginação para exportar tudo que passou pelos filtros
-        filtros_export = {k: v for k, v in filtros.items() if k not in ('page', 'limit')}
+        # Exporta tudo que passou pelos filtros (page/limit são ignorados)
+        assinaturas = AssinaturaRepository.listar_filtradas(
+            usuario_atual.id_usuario,
+            normalizar_filtros(filtros),
+            filtros.get('ordenar_por'),
+            filtros.get('ordem')
+        )
 
-        query = ListarAssinaturasService.construir_query(usuario_atual, filtros_export)
-
-        # Ordenação (igual ao listar)
-        from app.services.assinatura.listar_assinaturas_service import ORDENACAO_PERMITIDA
-        from app.models.assinatura import Assinatura
-        ordenar_por = filtros_export.get('ordenar_por') or 'data_renovacao'
-        ordem = filtros_export.get('ordem') or 'asc'
-        coluna = ORDENACAO_PERMITIDA.get(ordenar_por, Assinatura.data_renovacao)
-        query = query.order_by(coluna.desc() if ordem == 'desc' else coluna.asc())
-
-        assinaturas = query.all()
-
-        # Mapa id_categoria -> nome para evitar N+1 quando possível
-        cat_map = {}
-        if assinaturas:
-            ids = {a.id_categoria for a in assinaturas}
-            for c in Categoria.query.filter(Categoria.id_categoria.in_(ids)).all():
-                cat_map[c.id_categoria] = c.nome_categoria
+        # Mapa id_categoria -> nome em uma única consulta (evita N+1)
+        cat_map = CategoriaRepository.nomes_por_ids({a.id_categoria for a in assinaturas})
 
         buf = io.StringIO()
         writer = csv.writer(buf, quoting=csv.QUOTE_MINIMAL, lineterminator='\r\n')

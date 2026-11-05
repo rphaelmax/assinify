@@ -1,5 +1,5 @@
 from app.models.assinatura import Assinatura
-from app.models.historico_assinatura import HistoricoAssinatura
+from app.repositories.historico_repository import HistoricoRepository
 from app.exceptions import NotFoundError, ForbiddenError
 
 
@@ -14,9 +14,4 @@ class ListarHistoricoService:
         if usuario_atual.role != 'admin' and assinatura.id_usuario != usuario_atual.id_usuario:
             raise ForbiddenError('Você só pode ver o histórico das suas próprias assinaturas')
 
-        return (
-            HistoricoAssinatura.query
-            .filter_by(id_assinatura=id_assinatura)
-            .order_by(HistoricoAssinatura.data_alteracao.desc())
-            .all()
-        )
+        return HistoricoRepository.listar_por_assinatura(id_assinatura)

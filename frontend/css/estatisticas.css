@@ -1,0 +1,415 @@
+/* Aba Estatísticas — complementa style.css (reaproveita .card, .stat-card, .secao-titulo etc.) */
+
+.est-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.est-kpis .stat-card {
+  min-width: 0;
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-icon-red {
+  background: var(--red-bg-soft);
+  color: var(--red);
+}
+
+/* grades de cards */
+.est-grid {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 24px;
+  align-items: stretch;
+}
+
+.est-grid>.card {
+  min-width: 0;
+}
+
+.est-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.est-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.est-grid-proj {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.card-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.est-card-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: -10px;
+  margin-bottom: 16px;
+}
+
+.chart-wrap-lg {
+  height: 280px;
+  position: relative;
+}
+
+.chart-wrap-md {
+  height: 230px;
+  position: relative;
+}
+
+/* destaques */
+.insights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+}
+
+.insight {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.5;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.insight-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 7px;
+  flex-shrink: 0;
+  background: var(--blue);
+}
+
+.insight-ok .insight-dot {
+  background: var(--green);
+}
+
+.insight-alerta .insight-dot {
+  background: var(--amber);
+}
+
+.insight strong {
+  font-weight: 700;
+}
+
+/* resumo abaixo da projeção */
+.proj-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.mini-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-muted);
+}
+
+.mini-valor {
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.mini-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* próximas cobranças */
+.janela-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.janela-item:last-child {
+  border-bottom: 0;
+}
+
+.janela-nome {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.janela-qtd {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.janela-valor {
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* rankings com barra */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rank-pos {
+  width: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.rank-corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.rank-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rank-nome {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-valor {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rank-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-barra {
+  height: 6px;
+  border-radius: 6px;
+  background: var(--divider);
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.rank-barra>span {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+  background: var(--blue);
+  transition: width .5s ease;
+}
+
+.rank-item .service-logo {
+  width: 34px;
+  height: 34px;
+}
+
+/* listas simples (reajustes, canceladas) */
+.linha-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--divider);
+  min-width: 0;
+}
+
+.linha-item:last-child {
+  border-bottom: 0;
+}
+
+.linha-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.linha-nome {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.linha-meta {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.variacao {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.variacao-up {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.variacao-down {
+  background: var(--green-bg);
+  color: var(--green-text);
+}
+
+.linha-valor {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.linha-valor-economia {
+  color: var(--green-text);
+}
+
+.card-rodape {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--divider);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.card-rodape strong {
+  color: var(--text);
+}
+
+.est-estado {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--text-muted);
+}
+
+.est-estado .btn-primary,
+.est-estado .btn-secondary {
+  margin: 16px auto 0;
+}
+
+.est-skeleton {
+  height: 84px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--divider) 25%, var(--hover) 50%, var(--divider) 75%);
+  background-size: 200% 100%;
+  animation: est-shimmer 1.3s infinite;
+}
+
+@keyframes est-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .est-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .est-grid-3>.card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+
+  .est-grid-2,
+  .est-grid-3,
+  .est-grid-proj {
+    grid-template-columns: 1fr;
+  }
+
+  .est-grid-3>.card:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .est-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .insights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .est-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .proj-resumo {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .chart-wrap-lg {
+    height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .est-skeleton {
+    animation: none;
+  }
+
+  .rank-barra>span {
+    transition: none;
+  }
+}

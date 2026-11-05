@@ -28,11 +28,11 @@ function renderizarTabela(usuarios) {
 
     return `
     <tr>
-      <td>${u.id_usuario}</td>
-      <td><strong>${escapar(u.nome)}</strong>${ehVoceMesmo ? ' <span style="color:var(--text-muted);font-weight:400;">(você)</span>' : ''}${ehPadrao ? ' <span style="color:var(--text-muted);font-weight:400;">(padrão)</span>' : ''}</td>
-      <td>${escapar(u.email)}</td>
-      <td><span class="role-badge role-badge-${u.role}">${u.role === 'admin' ? 'Admin' : 'Usuário'}</span></td>
-      <td>
+      <td data-label="#">${u.id_usuario}</td>
+      <td data-label="Nome"><strong>${escapar(u.nome)}</strong>${ehVoceMesmo ? ' <span style="color:var(--text-muted);font-weight:400;">(você)</span>' : ''}${ehPadrao ? ' <span style="color:var(--text-muted);font-weight:400;">(padrão)</span>' : ''}</td>
+      <td data-label="E-mail">${escapar(u.email)}</td>
+      <td data-label="Permissão"><span class="role-badge role-badge-${u.role}">${u.role === 'admin' ? 'Admin' : 'Usuário'}</span></td>
+      <td data-label="Ações">
         <div style="display:flex;gap:6px;">
           ${podeEditar ? `
           <button class="btn-icon" title="Editar" onclick="abrirModalEditar(${u.id_usuario})">
@@ -59,6 +59,7 @@ function abrirModalEditar(id) {
   document.getElementById('input-nome').value = u.nome;
   document.getElementById('input-email').value = u.email;
   document.getElementById('input-email').disabled = u.admin_padrao === true;
+  UI.limparErroForm('modal-erro');
   document.getElementById('modal').classList.add('open');
 }
 
@@ -77,7 +78,7 @@ async function salvar() {
   };
 
   if (!dados.nome || !dados.email) {
-    alert('Nome e e-mail são obrigatórios.');
+    UI.erroForm('modal-erro', 'Nome e e-mail são obrigatórios.');
     return;
   }
 
@@ -86,43 +87,64 @@ async function salvar() {
 
     if (res.ok) {
       fecharModal();
+      UI.toast('Usuário atualizado.', 'sucesso');
       carregarUsuarios();
     } else {
       const err = await res.json();
-      alert(err.erro || 'Erro ao salvar.');
+      UI.erroForm('modal-erro', err.erro || 'Erro ao salvar.');
     }
   } catch {
-    alert('Erro de conexão com a API.');
+    UI.erroForm('modal-erro', 'Erro de conexão com a API.');
   }
 }
 
 async function alternarRole(id, novaRole) {
-  const acao = novaRole === 'admin' ? 'tornar este usuário admin' : 'remover a permissão de admin deste usuário';
-  if (!confirm(`Tem certeza que deseja ${acao}?`)) return;
+  const alvo = listaUsuarios.find(x => x.id_usuario === id);
+  const nome = alvo ? alvo.nome : 'este usuário';
+  const promover = novaRole === 'admin';
+  const confirmado = await UI.confirmar({
+    titulo: promover ? `Tornar ${nome} admin?` : `Remover admin de ${nome}?`,
+    mensagem: promover
+      ? 'Essa pessoa poderá gerenciar os usuários da plataforma.'
+      : 'Essa pessoa perderá o acesso à gestão de usuários.',
+    textoConfirmar: promover ? 'Tornar admin' : 'Remover permissão'
+  });
+  if (!confirmado) return;
 
   try {
     const res = await apiFetch(`/usuarios/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role: novaRole }) });
-    if (res.ok) carregarUsuarios();
-    else {
-      const err = await res.json();
-      alert(err.erro || 'Erro ao alterar permissão.');
+    if (res.ok) {
+      UI.toast(promover ? 'Permissão de admin concedida.' : 'Permissão de admin removida.', 'sucesso');
+      carregarUsuarios();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      UI.toast(err.erro || 'Erro ao alterar permissão.', 'erro');
     }
   } catch {
-    alert('Erro de conexão com a API.');
+    UI.toast('Erro de conexão com a API.', 'erro');
   }
 }
 
 async function excluir(id) {
-  if (!confirm('Deseja excluir este usuário? Todas as categorias e assinaturas dele também serão excluídas.')) return;
+  const alvo = listaUsuarios.find(x => x.id_usuario === id);
+  const confirmado = await UI.confirmar({
+    titulo: alvo ? `Excluir ${alvo.nome}?` : 'Excluir usuário?',
+    mensagem: 'Todas as categorias e assinaturas desse usuário também serão excluídas. Essa ação não pode ser desfeita.',
+    textoConfirmar: 'Excluir usuário',
+    perigo: true
+  });
+  if (!confirmado) return;
   try {
     const res = await apiFetch(`/usuarios/${id}`, { method: 'DELETE' });
-    if (res.ok) carregarUsuarios();
-    else {
-      const err = await res.json();
-      alert(err.erro || 'Erro ao excluir.');
+    if (res.ok) {
+      UI.toast('Usuário excluído.', 'sucesso');
+      carregarUsuarios();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      UI.toast(err.erro || 'Erro ao excluir.', 'erro');
     }
   } catch {
-    alert('Erro de conexão com a API.');
+    UI.toast('Erro de conexão com a API.', 'erro');
   }
 }
 
