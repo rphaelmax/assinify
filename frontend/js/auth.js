@@ -87,13 +87,17 @@ async function registrar(event) {
     mostrarErro('As senhas não coincidem.');
     return;
   }
+  if (!document.getElementById('input-termos').checked) {
+    mostrarErro('Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.');
+    return;
+  }
 
   definirCarregando(botao, true, 'Criar conta');
   try {
     const res = await fetch(`${API}/auth/registrar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, email, senha })
+      body: JSON.stringify({ nome, email, senha, aceitou_termos: true })
     });
     const dados = await res.json();
 

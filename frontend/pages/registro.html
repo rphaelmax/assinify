@@ -13,6 +13,29 @@
   <link rel="apple-touch-icon" href="../icons/icon-192.png" />
   <link rel="stylesheet" href="../css/style.css" />
   <script src="../js/tema.js"></script>
+  <style>
+    .termos-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .termos-check input {
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--blue);
+    }
+
+    .termos-check a {
+      color: var(--blue);
+      font-weight: 600;
+    }
+  </style>
 </head>
 
 <body>
@@ -62,6 +85,12 @@
           <input class="form-input" type="password" id="input-confirmar-senha" placeholder="••••••••"
             autocomplete="new-password" required />
         </div>
+
+        <label class="termos-check" for="input-termos">
+          <input type="checkbox" id="input-termos" required />
+          <span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener">Termos de Uso e a Política de
+              Privacidade</a>, inclusive o envio dos dados das minhas assinaturas à IA (Google Gemini).</span>
+        </label>
 
         <button class="btn-auth-submit" type="submit" id="btn-submit">Criar conta</button>
 

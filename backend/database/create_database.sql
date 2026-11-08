@@ -8,7 +8,10 @@ create table if not exists usuarios (
     senha_hash varchar(255) not null,
     role varchar(20) not null default 'user',
     data_cadastro date default (current_date),
-    foto_perfil varchar(100) null
+    foto_perfil varchar(100) null,
+    moeda_base varchar(3) not null default 'BRL',
+    termos_aceitos_em datetime null,
+    termos_versao varchar(10) null
 );
 
 create table if not exists categorias (
@@ -28,6 +31,10 @@ create table if not exists assinaturas (
     tipo_plano varchar(50),
     metodo_pagamento varchar(30) not null default 'cartao_credito',
     periodicidade varchar(20) not null default 'mensal',
+    moeda varchar(3) not null default 'BRL',
+    num_pessoas int not null default 1,
+    data_cancelamento date null,
+    teste_ate date null,
     id_usuario int not null,
     id_categoria int not null,
     foreign key (id_usuario) references usuarios(id_usuario),
@@ -46,8 +53,8 @@ create table if not exists historico_assinaturas (
     foreign key (id_usuario) references usuarios(id_usuario) on delete set null
 );
 
--- bancos já existentes:
--- alter table assinaturas add column metodo_pagamento varchar(30) not null default 'cartao_credito';
--- alter table assinaturas modify valor_mensal decimal(10,2) not null;
--- alter table assinaturas add column periodicidade varchar(20) not null default 'mensal';
--- alter table usuarios add column foto_perfil varchar(100) null;
+create table if not exists taxas_cambio (
+    moeda varchar(3) primary key,
+    taxa_por_usd decimal(20,8) not null,
+    atualizada_em datetime not null
+);

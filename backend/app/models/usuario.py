@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from app.extensions import db
 
@@ -13,6 +13,10 @@ class Usuario(db.Model):
     role = db.Column(db.String(20), nullable=False, default='user')
     data_cadastro = db.Column(db.Date, default=date.today)
     foto_perfil = db.Column(db.String(100), nullable=True)
+    # Moeda para a qual todos os valores do usuário são convertidos nos totais
+    moeda_base = db.Column(db.String(3), nullable=False, default='BRL')
+    termos_aceitos_em = db.Column(db.DateTime, nullable=True)
+    termos_versao = db.Column(db.String(10), nullable=True)
 
     assinaturas = db.relationship('Assinatura', backref='usuario', lazy=True, cascade='all, delete-orphan')
     categorias = db.relationship('Categoria', backref='usuario', lazy=True, cascade='all, delete-orphan')
@@ -22,7 +26,7 @@ class Usuario(db.Model):
         db.session.commit()
         return self
 
-    def atualizar(self, nome=None, email=None, senha_hash=None, role=None):
+    def atualizar(self, nome=None, email=None, senha_hash=None, role=None, moeda_base=None):
         if nome is not None:
             self.nome = nome
         if email is not None:
@@ -31,6 +35,8 @@ class Usuario(db.Model):
             self.senha_hash = senha_hash
         if role is not None:
             self.role = role
+        if moeda_base is not None:
+            self.moeda_base = moeda_base
         db.session.commit()
         return self
 
@@ -59,5 +65,8 @@ class Usuario(db.Model):
             'email': self.email,
             'role': self.role,
             'data_cadastro': self.data_cadastro.isoformat() if self.data_cadastro else None,
+            'moeda_base': self.moeda_base or 'BRL',
+            'termos_aceitos_em': self.termos_aceitos_em.isoformat() if self.termos_aceitos_em else None,
+            'termos_versao': self.termos_versao,
             'foto_url': f'/uploads/avatars/{self.foto_perfil}' if self.foto_perfil else None
         }

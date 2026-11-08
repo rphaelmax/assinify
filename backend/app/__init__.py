@@ -13,6 +13,8 @@ from app.controllers.usuario_controller import usuario_bp
 from app.controllers.categoria_controller import categoria_bp
 from app.controllers.assinatura_controller import assinatura_bp
 from app.controllers.upload_controller import upload_bp
+from app.controllers.agente_controller import agente_bp
+from app.models import taxa_cambio  # noqa: F401  (registra a tabela taxas_cambio no create_all)
 
 
 def create_app():
@@ -27,6 +29,7 @@ def create_app():
     app.register_blueprint(categoria_bp)
     app.register_blueprint(assinatura_bp)
     app.register_blueprint(upload_bp)
+    app.register_blueprint(agente_bp)
 
     @app.errorhandler(AppError)
     def tratar_erro_app(erro):
@@ -77,6 +80,21 @@ def _garantir_schema_atual():
                 "ALTER TABLE usuarios ADD COLUMN foto_perfil VARCHAR(100) NULL"
             ))
             db.session.commit()
+        if 'moeda_base' not in colunas_usuarios:
+            db.session.execute(text(
+                "ALTER TABLE usuarios ADD COLUMN moeda_base VARCHAR(3) NOT NULL DEFAULT 'BRL'"
+            ))
+            db.session.commit()
+        if 'termos_aceitos_em' not in colunas_usuarios:
+            db.session.execute(text(
+                "alter table usuarios add column termos_aceitos_em datetime null"
+            ))
+            db.session.commit()
+        if 'termos_versao' not in colunas_usuarios:
+            db.session.execute(text(
+                "alter table usuarios add column termos_versao varchar(10) null"
+            ))
+            db.session.commit()
 
     if 'assinaturas' not in tabelas:
         return
@@ -95,6 +113,17 @@ def _garantir_schema_atual():
             "VARCHAR(20) NOT NULL DEFAULT 'mensal'"
         ))
         db.session.commit()
+
+    novas_colunas = (
+        ('moeda', "VARCHAR(3) NOT NULL DEFAULT 'BRL'"),
+        ('num_pessoas', "INT NOT NULL DEFAULT 1"),
+        ('data_cancelamento', "DATE NULL"),
+        ('teste_ate', "DATE NULL"),
+    )
+    for nome_coluna, definicao in novas_colunas:
+        if nome_coluna not in colunas:
+            db.session.execute(text(f"ALTER TABLE assinaturas ADD COLUMN {nome_coluna} {definicao}"))
+            db.session.commit()
 
     if db.engine.dialect.name == 'mysql' and isinstance(colunas['valor_mensal'], Float):
         db.session.execute(text(
