@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from app.models.usuario import Usuario
 from app.repositories.usuario_repository import UsuarioRepository
 from app.security.senha import hashear_senha
@@ -19,7 +17,6 @@ CATEGORIAS_PADRAO = [
 ]
 
 SENHA_MIN_CARACTERES = 6
-TERMOS_VERSAO = '1.0'
 
 
 class RegistrarUsuarioService:
@@ -38,9 +35,6 @@ class RegistrarUsuarioService:
             )
         validar_forca_senha(senha, minimo_nivel=1)
 
-        if dados.get('aceitou_termos') is not True:
-            raise ValidationError('É necessário aceitar os Termos de Uso e a Política de Privacidade')
-
         if UsuarioRepository.buscar_por_email(email) is not None:
             raise ValidationError('Já existe um usuário cadastrado com esse email')
 
@@ -48,9 +42,7 @@ class RegistrarUsuarioService:
             nome=nome,
             email=email,
             senha_hash=hashear_senha(senha),
-            role='user',
-            termos_aceitos_em=datetime.utcnow(),
-            termos_versao=TERMOS_VERSAO
+            role='user'
         )
         usuario.salvar()
 

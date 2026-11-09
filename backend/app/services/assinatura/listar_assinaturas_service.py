@@ -19,7 +19,7 @@ def normalizar_filtros(filtros):
     except (ValueError, TypeError):
         pass
 
-    if filtros.get('status') in ('ativa', 'cancelada'):
+    if filtros.get('status') in ('ativa', 'pausada', 'cancelada'):
         criterios['status'] = filtros['status']
 
     if filtros.get('metodo_pagamento') in METODOS_PAGAMENTO:

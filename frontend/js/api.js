@@ -122,10 +122,34 @@ function renderizarAvatar(el, usuario) {
   el.appendChild(img);
 }
 
+// ── Moedas ───────────────────────────────────────────────────────
+const MOEDAS_NOMES = {
+  BRL: 'Real brasileiro', USD: 'Dólar americano', EUR: 'Euro', GBP: 'Libra esterlina',
+  CAD: 'Dólar canadense', AUD: 'Dólar australiano', JPY: 'Iene japonês', CHF: 'Franco suíço',
+  ARS: 'Peso argentino', MXN: 'Peso mexicano'
+};
+let moedaBase = 'BRL';
+
+function definirMoedaBase(codigo) {
+  if (MOEDAS_NOMES[codigo]) moedaBase = codigo;
+}
+
+/** Formata um valor na moeda informada (ou na moeda base do usuário). */
+function formatarMoeda(valor, moeda) {
+  return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: moeda || moedaBase });
+}
+
+function opcoesMoeda(selecionada) {
+  return Object.entries(MOEDAS_NOMES)
+    .map(([codigo, nome]) => `<option value="${codigo}"${codigo === selecionada ? ' selected' : ''}>${codigo} · ${nome}</option>`)
+    .join('');
+}
+
 function popularSidebar(usuario) {
   const avatar = document.getElementById('sidebar-avatar');
   const nome = document.getElementById('sidebar-nome');
   renderizarAvatar(avatar, usuario);
+  definirMoedaBase(usuario.moeda_base);
   if (nome) nome.textContent = usuario.nome;
 
   // O item de menu "Usuários" só faz sentido pra quem administra a plataforma

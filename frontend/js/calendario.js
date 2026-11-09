@@ -142,9 +142,9 @@ function mostrarDiaCalendario(dia) {
       </div>
       <div class="renewal-info">
         <div class="renewal-name">${escapar(a.nome_servico)}</div>
-        <div class="renewal-days">${escapar(PERIODICIDADE_LABEL[a.periodicidade] || 'Mensal')}</div>
+        <div class="renewal-days">${a.fim_teste ? 'Fim do teste · primeira cobrança' : escapar(PERIODICIDADE_LABEL[a.periodicidade] || 'Mensal')}</div>
       </div>
-      <div class="renewal-value">${formatarMoeda(a.valor_mensal)}</div>
+      <div class="renewal-value">${formatarMoeda(a.valor_minha_parte, a.moeda)}</div>
     </div>`).join('');
   UI.informar({ titulo: `${dia} de ${MESES_PT[calMes]}`, corpoHtml: itens });
 }

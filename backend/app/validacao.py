@@ -3,6 +3,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from app.exceptions import ValidationError
+from app.moedas import MOEDAS, MOEDA_PADRAO
 
 EMAIL_REGEX = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 VALOR_MAXIMO = Decimal('99999999.99')
@@ -70,6 +71,67 @@ def exigir_id_categoria(valor):
 
 
 PERIODICIDADES_VALIDAS = {'semanal', 'mensal', 'anual'}
+STATUS_VALIDOS = ('ativa', 'pausada', 'cancelada')
+MAX_PESSOAS = 50
+
+
+def validar_moeda(valor, padrao=MOEDA_PADRAO):
+    if valor is None or valor == '':
+        return padrao
+    if not isinstance(valor, str) or valor.strip().upper() not in MOEDAS:
+        raise ValidationError('Moeda inválida. Use: ' + ', '.join(MOEDAS))
+    return valor.strip().upper()
+
+
+def validar_num_pessoas(valor):
+    if valor is None or valor == '':
+        return 1
+    if isinstance(valor, bool) or not isinstance(valor, int):
+        raise ValidationError('Número de pessoas inválido')
+    if not 1 <= valor <= MAX_PESSOAS:
+        raise ValidationError(f'Número de pessoas deve estar entre 1 e {MAX_PESSOAS}')
+    return valor
+
+
+def validar_status(valor):
+    if not isinstance(valor, str) or valor not in STATUS_VALIDOS:
+        raise ValidationError("Status inválido. Use 'ativa', 'pausada' ou 'cancelada'")
+    return valor
+
+
+def data_iso_opcional(valor, campo):
+    """Data ISO ou None/'' (sem data)."""
+    if valor is None or valor == '':
+        return None
+    return data_iso(valor, campo)
+
+
+def alinhar_renovacao_ao_teste(data_renovacao, teste_ate, hoje=None):
+    """A primeira cobrança só acontece depois do teste gratuito.
+
+    Se o teste ainda está em andamento, a data-âncora de renovação não pode ser
+    anterior ao fim dele; senão a primeira cobrança cairia só no ciclo seguinte.
+    """
+    hoje = hoje or date.today()
+    if teste_ate is not None and teste_ate > hoje and data_renovacao < teste_ate:
+        return teste_ate
+    return data_renovacao
+
+
+def resolver_data_cancelamento(status, informada, atual=None, hoje=None):
+    """Mantém data_cancelamento coerente com o status.
+
+    Só assinatura cancelada tem data. Ao cancelar sem informar a data, vale
+    hoje (ou a que já estava gravada); ao reativar ou pausar, a data é limpa.
+    """
+    if status != 'cancelada':
+        return None
+    hoje = hoje or date.today()
+    if informada is not None:
+        if informada > hoje:
+            raise ValidationError('A data de cancelamento não pode ser futura')
+        return informada
+    return atual or hoje
 
 
 def validar_forca_senha(senha, minimo_nivel=1):

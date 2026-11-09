@@ -1,11 +1,11 @@
 from app.models.usuario import Usuario
 from app.repositories.usuario_repository import UsuarioRepository
 from app.exceptions import ValidationError, ForbiddenError
-from app.validacao import texto, validar_email
+from app.validacao import texto, validar_email, validar_moeda
 
 
 class AtualizarPerfilService:
-    """Atualiza nome e email do próprio usuário autenticado."""
+    """Atualiza nome, email e moeda base do próprio usuário autenticado."""
 
     @staticmethod
     def executar(dados, usuario_atual):
@@ -20,5 +20,7 @@ class AtualizarPerfilService:
                 if existente is not None:
                     raise ValidationError('Já existe um usuário cadastrado com esse email')
 
-        usuario_atual.atualizar(nome=nome, email=novo_email)
+        moeda_base = validar_moeda(dados['moeda_base']) if 'moeda_base' in dados else None
+
+        usuario_atual.atualizar(nome=nome, email=novo_email, moeda_base=moeda_base)
         return usuario_atual

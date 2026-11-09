@@ -21,12 +21,17 @@ const CORES = ['#2563EB', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
 const LIMIAR_MES_PESADO = 1.25;
 
 // ── Formatação ────────────────────────────────────────────────────
+// Todos os valores desta página vêm convertidos para a moeda base do usuário.
 function moeda(valor) {
-  return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return formatarMoeda(valor);
 }
 
 function moedaCurta(valor) {
-  return 'R$ ' + valor.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: moedaBase, maximumFractionDigits: 0 });
+}
+
+function dataBr(iso) {
+  return iso ? iso.split('-').reverse().join('/') : '';
 }
 
 function percentual(valor) {
@@ -81,6 +86,8 @@ async function carregarEstatisticasDetalhadas() {
 
   if (btn) btn.disabled = false;
 
+  definirMoedaBase(dados.moeda_base);
+
   if (!dados.resumo.ativas) {
     mostrar('vazio');
     return;
@@ -132,11 +139,14 @@ function renderizarKpis(d) {
   const cancelamento = r.canceladas
     ? `${plural(r.canceladas, 'cancelada', 'canceladas')} · ${percentual(r.taxa_cancelamento)} do total`
     : 'Nenhuma cancelada';
+  const situacoes = [cancelamento];
+  if (r.pausadas) situacoes.push(plural(r.pausadas, 'pausada', 'pausadas'));
+  if (r.em_teste) situacoes.push(`${plural(r.em_teste, 'em teste', 'em teste')} (sem cobrança ainda)`);
 
   const cartoes = [
     { icone: 'dinheiro', cor: 'blue', rotulo: 'Gasto mensal', valor: moeda(r.total_mensal), sub: `≈ ${moeda(r.custo_diario)} por dia` },
     { icone: 'calendario', cor: 'blue', rotulo: 'Gasto anual', valor: moeda(r.total_anual), sub: 'Soma anualizada das ativas' },
-    { icone: 'ativas', cor: 'green', rotulo: 'Assinaturas ativas', valor: String(r.ativas), sub: cancelamento },
+    { icone: 'ativas', cor: 'green', rotulo: 'Assinaturas ativas', valor: String(r.ativas), sub: situacoes.join(' · ') },
     { icone: 'media', cor: 'amber', rotulo: 'Média por assinatura', valor: `${moeda(r.media_mensal)} / mês`, sub: `Mediana: ${moeda(r.mediana_mensal)} / mês` },
     {
       icone: 'maior', cor: 'red', rotulo: 'Maior assinatura',
@@ -146,7 +156,9 @@ function renderizarKpis(d) {
     {
       icone: 'economia', cor: 'green', rotulo: 'Economia com canceladas',
       valor: `${moeda(r.economia_mensal)} / mês`,
-      sub: r.canceladas ? `${moeda(r.economia_anual)} por ano` : 'Nada cancelado ainda'
+      sub: r.canceladas
+        ? `${moeda(r.economia_anual)} por ano${r.economia_acumulada ? ` · ${moeda(r.economia_acumulada)} já economizados` : ''}`
+        : 'Nada cancelado ainda'
     }
   ];
 
@@ -158,6 +170,36 @@ function mesPesadoRelevante(d) {
   const p = d.projecao;
   return p.mes_mais_pesado && p.media_mensal > 0
     && p.mes_mais_pesado.total >= p.media_mensal * LIMIAR_MES_PESADO;
+}
+
+// Avisos que não podem ficar de fora do limite de destaques: teste acabando, pausas e câmbio.
+function montarAvisos(d) {
+  const avisos = [];
+
+  (d.em_teste || []).filter(t => t.dias_restantes <= 7).forEach(t => {
+    const quando = t.dias_restantes === 1 ? 'amanhã' : `em ${t.dias_restantes} dias`;
+    avisos.push({
+      tipo: 'alerta',
+      html: `O teste gratuito de ${forte(t.nome_servico)} termina ${quando}. Depois disso serão cobrados ${forte(moeda(t.total_mensal))} por mês (sua parte).`
+    });
+  });
+
+  if ((d.pausadas || []).length) {
+    const mensal = d.pausadas.reduce((soma, p) => soma + p.total_mensal, 0);
+    avisos.push({
+      tipo: 'ok',
+      html: `${plural(d.pausadas.length, 'assinatura pausada', 'assinaturas pausadas')}: enquanto durar a pausa você deixa de gastar ${forte(moeda(mensal))} por mês.`
+    });
+  }
+
+  if (d.cambio && d.cambio.fonte === 'aproximada') {
+    avisos.push({
+      tipo: 'alerta',
+      html: 'As cotações de câmbio são aproximadas porque a API não respondeu; valores em outras moedas podem variar.'
+    });
+  }
+
+  return avisos;
 }
 
 function montarDestaques(d) {
@@ -224,11 +266,11 @@ function montarDestaques(d) {
   if (r.canceladas > 0) {
     itens.push({
       tipo: 'ok',
-      html: `Ao cancelar ${plural(r.canceladas, 'serviço', 'serviços')}, você deixou de pagar ${forte(moeda(r.economia_mensal))} por mês (${moeda(r.economia_anual)} por ano).`
+      html: `Ao cancelar ${plural(r.canceladas, 'serviço', 'serviços')}, você deixou de pagar ${forte(moeda(r.economia_mensal))} por mês (${moeda(r.economia_anual)} por ano)${r.economia_acumulada ? `; desde as datas de cancelamento já são ${forte(moeda(r.economia_acumulada))} economizados` : ''}.`
     });
   }
 
-  return itens.slice(0, 6);
+  return [...montarAvisos(d), ...itens].slice(0, 6);
 }
 
 function renderizarDestaques(d) {
@@ -550,11 +592,11 @@ function renderizarCanceladas(d) {
       ${logoHtml(c.nome_servico)}
       <div class="linha-info">
         <div class="linha-nome">${escapar(c.nome_servico)}</div>
-        <div class="linha-meta">${escapar(PERIODICIDADE_LABEL[c.periodicidade] || 'Mensal')} · ${escapar(moeda(c.total_anual))} por ano</div>
+        <div class="linha-meta">${escapar(PERIODICIDADE_LABEL[c.periodicidade] || 'Mensal')} · ${escapar(moeda(c.total_anual))} por ano${c.data_cancelamento ? ` · cancelada em ${escapar(dataBr(c.data_cancelamento))}` : ''}${c.economizado ? ` · ${escapar(moeda(c.economizado))} economizados` : ''}</div>
       </div>
       <div class="linha-valor linha-valor-economia">${escapar(moeda(c.total_mensal))} / mês</div>
     </div>`).join('') + `
-    <div class="card-rodape">Você deixou de gastar ${forte(moeda(r.economia_mensal))} por mês, ou ${forte(moeda(r.economia_anual))} por ano.</div>`;
+    <div class="card-rodape">Você deixou de gastar ${forte(moeda(r.economia_mensal))} por mês, ou ${forte(moeda(r.economia_anual))} por ano.${r.economia_acumulada ? ` Desde os cancelamentos, já foram ${forte(moeda(r.economia_acumulada))}.` : ''}</div>`;
 }
 
 async function init() {

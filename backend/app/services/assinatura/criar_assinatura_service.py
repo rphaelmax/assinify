@@ -3,7 +3,11 @@ from datetime import date
 from app.models.assinatura import Assinatura
 from app.models.categoria import Categoria
 from app.exceptions import ValidationError, NotFoundError, ForbiddenError
-from app.validacao import texto, valor_monetario, data_iso, exigir_id_categoria, validar_periodicidade
+from app.validacao import (
+    texto, valor_monetario, data_iso, data_iso_opcional, exigir_id_categoria, validar_periodicidade,
+    validar_moeda, validar_num_pessoas, validar_status, resolver_data_cancelamento,
+    alinhar_renovacao_ao_teste
+)
 
 
 METODOS_PAGAMENTO = {
@@ -39,15 +43,26 @@ class CriarAssinaturaService:
 
         periodicidade = validar_periodicidade(dados.get('periodicidade'))
 
-        status = dados.get('status', 'ativa')
-        if status not in ('ativa', 'cancelada'):
-            raise ValidationError("Status inválido. Use 'ativa' ou 'cancelada'")
+        moeda = validar_moeda(dados.get('moeda'), padrao=usuario_atual.moeda_base or 'BRL')
+        num_pessoas = validar_num_pessoas(dados.get('num_pessoas'))
+        teste_ate = data_iso_opcional(dados.get('teste_ate'), 'Fim do teste')
+
+        status = validar_status(dados.get('status', 'ativa'))
+        data_cancelamento = resolver_data_cancelamento(
+            status, data_iso_opcional(dados.get('data_cancelamento'), 'Data de cancelamento')
+        )
+        if status == 'ativa':
+            data_renovacao = alinhar_renovacao_ao_teste(data_renovacao, teste_ate)
 
         assinatura = Assinatura(
             nome_servico=nome_servico,
             valor_mensal=valor_mensal,
+            moeda=moeda,
+            num_pessoas=num_pessoas,
             data_renovacao=data_renovacao,
             status=status,
+            data_cancelamento=data_cancelamento,
+            teste_ate=teste_ate,
             tipo_plano=tipo_plano,
             metodo_pagamento=metodo_pagamento,
             periodicidade=periodicidade,

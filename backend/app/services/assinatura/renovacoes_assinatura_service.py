@@ -3,7 +3,6 @@ import calendar
 
 from app.repositories.assinatura_repository import AssinaturaRepository
 from app.exceptions import ValidationError
-from app.renovacao import renovacoes_no_periodo
 
 LIMITE_PROXIMAS_PADRAO = 50
 LIMITE_PROXIMAS_MAXIMO = 200
@@ -51,15 +50,18 @@ class RenovacoesAssinaturaService:
 
         renovacoes = []
         for a in ativas:
-            for data in renovacoes_no_periodo(
-                a.data_renovacao, a.periodicidade or 'mensal', inicio, fim
-            ):
+            for data in a.renovacoes_no_periodo(inicio, fim):
                 renovacoes.append({
                     'dia': data.day,
                     'id_assinatura': a.id_assinatura,
                     'nome_servico': a.nome_servico,
+                    # preço cheio e parte do usuário, ambos na moeda da assinatura
                     'valor_mensal': float(a.valor_mensal),
+                    'valor_minha_parte': round(float(a.valor_minha_parte), 2),
+                    'moeda': a.moeda,
+                    'num_pessoas': a.pessoas,
                     'periodicidade': a.periodicidade or 'mensal',
+                    'fim_teste': a.teste_ate is not None and data == a.teste_ate,
                 })
         renovacoes.sort(key=lambda r: (r['dia'], r['nome_servico'].lower()))
         return {'ano': ano, 'mes': mes, 'renovacoes': renovacoes}

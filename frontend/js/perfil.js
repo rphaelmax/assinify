@@ -72,6 +72,7 @@ function atualizarForcaSenha() {
 async function salvarPerfil() {
   const nome = document.getElementById('perfil-nome').value.trim();
   const email = document.getElementById('perfil-email').value.trim();
+  const moedaBaseEscolhida = document.getElementById('perfil-moeda').value;
 
   if (!nome || !email) {
     mostrarFeedback('perfil-feedback', 'Preencha nome e e-mail.', 'erro');
@@ -81,7 +82,7 @@ async function salvarPerfil() {
   try {
     const res = await apiFetch('/auth/perfil', {
       method: 'PUT',
-      body: JSON.stringify({ nome, email })
+      body: JSON.stringify({ nome, email, moeda_base: moedaBaseEscolhida })
     });
     const dados = await res.json();
     if (!res.ok) {
@@ -146,6 +147,7 @@ function popularPerfil(usuario) {
 
   document.getElementById('perfil-nome').value = usuario.nome;
   document.getElementById('perfil-email').value = usuario.email;
+  document.getElementById('perfil-moeda').innerHTML = opcoesMoeda(usuario.moeda_base || 'BRL');
 }
 
 async function init() {

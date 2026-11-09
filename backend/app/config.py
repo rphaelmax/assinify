@@ -23,3 +23,8 @@ class Config:
 
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@assinify.com')
     ADMIN_SENHA = os.getenv('ADMIN_SENHA', 'admin123')
+
+    # Agente de IA (Gemini). Sem GEMINI_API_KEY o endpoint /agente responde 503.
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.5-flash')
+    GEMINI_MODEL_FALLBACK = os.getenv('GEMINI_MODEL_FALLBACK', 'gemini-2.5-flash')

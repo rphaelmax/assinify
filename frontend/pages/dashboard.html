@@ -12,6 +12,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png" />
   <link rel="apple-touch-icon" href="../icons/icon-192.png" />
   <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/agente.css" />
   <script src="../js/tema.js"></script>
 </head>
 
@@ -128,12 +129,15 @@
         <div>
           <div class="summary-label">Gasto mensal estimado</div>
           <div class="summary-value" id="total-mensal">R$ 0,00</div>
-          <div class="summary-badge">somente assinaturas ativas</div>
+          <div class="summary-badge" id="summary-badge">somente assinaturas ativas</div>
           <div class="summary-hint" id="summary-anual-hint"
             style="display:none; margin-top:6px; font-size:12px; opacity:.85;"></div>
         </div>
         <button class="summary-add" onclick="abrirModal()">+</button>
       </div>
+
+      <!-- Análise proativa do assistente de IA (preenchida por agente.js) -->
+      <div id="agente-insights"></div>
 
       <div class="grid">
         <div class="col-principal">
@@ -183,6 +187,7 @@
               <select class="filter-select" id="filtro-status" onchange="aplicarFiltros()">
                 <option value="todas">Todas</option>
                 <option value="ativa" selected>Ativas</option>
+                <option value="pausada">Pausadas</option>
                 <option value="cancelada">Canceladas</option>
               </select>
             </div>
@@ -332,9 +337,33 @@
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label class="form-label">Moeda</label>
+          <select class="form-input" id="input-moeda"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dividido entre (pessoas)</label>
+          <input class="form-input" type="number" id="input-pessoas" min="1" max="50" step="1" value="1" />
+        </div>
+      </div>
+      <div class="form-hint" style="margin:-4px 0 12px;">Conte com você: se mais 3 pessoas dividem, são 4. Em outra
+        moeda, o valor é convertido para a sua moeda base nos totais (cotações: <a
+          href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>).</div>
+      <div class="form-row">
+        <div class="form-group">
           <label class="form-label">Renovação</label>
           <input class="form-input" type="date" id="input-renovacao" />
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="input-teste" onchange="alternarTeste()" />
+          Está em período de teste gratuito
+        </label>
+      </div>
+      <div class="form-group" id="grupo-teste" style="display:none;">
+        <label class="form-label">O teste termina em</label>
+        <input class="form-input" type="date" id="input-teste-ate" onchange="sincronizarRenovacaoComTeste()" />
+        <div class="form-hint">A primeira cobrança acontece a partir desta data. Você recebe um alerta antes dela.</div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -361,13 +390,20 @@
         </div>
         <div class="form-group">
           <label class="form-label">Status</label>
-          <select class="form-input" id="input-status">
+          <select class="form-input" id="input-status" onchange="alternarStatus()">
             <option value="ativa">Ativa</option>
+            <option value="pausada">Pausada</option>
             <option value="cancelada">Cancelada</option>
           </select>
         </div>
-        <div class="form-hint">Equivale a <strong id="preview-anualizado-valor">—</strong> por ano</div>
       </div>
+      <div class="form-group" id="grupo-cancelamento" style="display:none;">
+        <label class="form-label">Data do cancelamento</label>
+        <input class="form-input" type="date" id="input-data-cancelamento" />
+        <div class="form-hint">Em branco vale hoje. É a partir dela que calculamos quanto você já economizou.</div>
+      </div>
+      <div class="form-hint">Equivale a <strong id="preview-anualizado-valor">—</strong> por ano<span
+          id="preview-anualizado-extra"></span></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
         <button class="btn-save" onclick="salvarAssinatura()">Salvar</button>
@@ -392,6 +428,7 @@
   <script src="../js/ui.js"></script>
   <script src="../js/calendario.js"></script>
   <script src="../js/dashboard.js"></script>
+  <script src="../js/agente.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('../sw.js').catch(() => { });

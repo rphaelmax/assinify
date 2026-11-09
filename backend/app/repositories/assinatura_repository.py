@@ -1,6 +1,6 @@
-from sqlalchemy import case, func
+from collections import namedtuple
+from decimal import Decimal
 
-from app.extensions import db
 from app.models.assinatura import Assinatura
 from app.models.categoria import Categoria
 
@@ -12,13 +12,14 @@ ORDENACAO_PERMITIDA = {
     'status': Assinatura.status,
 }
 
-def _anualizado():
-    """Expressão SQL que converte valor_mensal (valor por período) em valor anual."""
-    return case(
-        (Assinatura.periodicidade == 'semanal', Assinatura.valor_mensal * 52),
-        (Assinatura.periodicidade == 'anual', Assinatura.valor_mensal * 1),
-        else_=Assinatura.valor_mensal * 12
-    )
+LinhaCategoria = namedtuple('LinhaCategoria', 'id_categoria nome_categoria total qtd')
+LinhaPagamento = namedtuple('LinhaPagamento', 'metodo_pagamento total qtd')
+
+
+def _cobrando(ativas):
+    """Ativas que já estão sendo cobradas (fora do teste gratuito)."""
+    return [a for a in ativas if not a.em_teste()]
+
 
 class AssinaturaRepository:
     """Consultas de Assinatura que vão além do CRUD básico (que fica na Model).
@@ -68,56 +69,47 @@ class AssinaturaRepository:
         return Assinatura.query.filter_by(id_usuario=id_usuario, status='ativa').all()
 
     # ---------- agregações do dashboard ----------
+    #
+    # Feitas em Python (e não em SQL) porque cada valor precisa ser dividido
+    # entre as pessoas, convertido de moeda e ignorar assinaturas em teste
+    # gratuito; o volume por usuário é pequeno. Tudo sai na moeda base.
 
     @staticmethod
-    def totais(id_usuario):
-        """Total anualizado das ativas e contagem por status."""
-        total_anual = db.session.query(
-            func.coalesce(func.sum(_anualizado()), 0)
-        ).filter(
-            Assinatura.id_usuario == id_usuario,
-            Assinatura.status == 'ativa'
-        ).scalar()
+    def totais(id_usuario, moeda_base):
+        """Total anualizado (parte do usuário, só quem já cobra) e contagens por situação."""
+        ativas = AssinaturaRepository.listar_ativas(id_usuario)
+        cobrando = _cobrando(ativas)
+        total_anual = sum((a.anualizado_em(moeda_base) for a in cobrando), Decimal('0'))
 
         base = Assinatura.query.filter_by(id_usuario=id_usuario)
         return {
             'total_anual': total_anual,
-            'ativas': base.filter_by(status='ativa').count(),
+            'ativas': len(ativas),
+            'cobrando': len(cobrando),
+            'em_teste': len(ativas) - len(cobrando),
+            'pausadas': base.filter_by(status='pausada').count(),
             'canceladas': base.filter_by(status='cancelada').count(),
         }
 
     @staticmethod
-    def gasto_por_categoria(id_usuario):
-        anualizado = _anualizado()
-        return (
-            db.session.query(
-                Categoria.id_categoria,
-                Categoria.nome_categoria,
-                func.coalesce(func.sum(anualizado), 0).label('total'),
-                func.count(Assinatura.id_assinatura).label('qtd'),
-            )
-            .join(Assinatura, Assinatura.id_categoria == Categoria.id_categoria)
-            .filter(
-                Assinatura.id_usuario == id_usuario,
-                Assinatura.status == 'ativa',
-            )
-            .group_by(Categoria.id_categoria, Categoria.nome_categoria)
-            .order_by(func.sum(anualizado).desc())
-            .all()
-        )
+    def gasto_por_categoria(id_usuario, moeda_base):
+        nomes = {c.id_categoria: c.nome_categoria for c in Categoria.listar_por_usuario(id_usuario)}
+        grupos = {}
+        for a in _cobrando(AssinaturaRepository.listar_ativas(id_usuario)):
+            grupo = grupos.setdefault(a.id_categoria, [Decimal('0'), 0])
+            grupo[0] += a.anualizado_em(moeda_base)
+            grupo[1] += 1
+        linhas = [
+            LinhaCategoria(id_cat, nomes.get(id_cat, 'Sem categoria'), total, qtd)
+            for id_cat, (total, qtd) in grupos.items()
+        ]
+        return sorted(linhas, key=lambda l: l.total, reverse=True)
 
     @staticmethod
-    def gasto_por_pagamento(id_usuario):
-        return (
-            db.session.query(
-                Assinatura.metodo_pagamento,
-                func.coalesce(func.sum(_anualizado()), 0).label('total'),
-                func.count(Assinatura.id_assinatura).label('qtd'),
-            )
-            .filter(
-                Assinatura.id_usuario == id_usuario,
-                Assinatura.status == 'ativa',
-            )
-            .group_by(Assinatura.metodo_pagamento)
-            .all()
-        )
+    def gasto_por_pagamento(id_usuario, moeda_base):
+        grupos = {}
+        for a in _cobrando(AssinaturaRepository.listar_ativas(id_usuario)):
+            grupo = grupos.setdefault(a.metodo_pagamento, [Decimal('0'), 0])
+            grupo[0] += a.anualizado_em(moeda_base)
+            grupo[1] += 1
+        return [LinhaPagamento(metodo, total, qtd) for metodo, (total, qtd) in grupos.items()]

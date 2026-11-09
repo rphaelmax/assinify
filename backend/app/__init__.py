@@ -85,16 +85,6 @@ def _garantir_schema_atual():
                 "ALTER TABLE usuarios ADD COLUMN moeda_base VARCHAR(3) NOT NULL DEFAULT 'BRL'"
             ))
             db.session.commit()
-        if 'termos_aceitos_em' not in colunas_usuarios:
-            db.session.execute(text(
-                "alter table usuarios add column termos_aceitos_em datetime null"
-            ))
-            db.session.commit()
-        if 'termos_versao' not in colunas_usuarios:
-            db.session.execute(text(
-                "alter table usuarios add column termos_versao varchar(10) null"
-            ))
-            db.session.commit()
 
     if 'assinaturas' not in tabelas:
         return

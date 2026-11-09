@@ -3,9 +3,10 @@ import statistics
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
+from app.cambio import info as info_cambio
 from app.models.assinatura import Assinatura
 from app.models.categoria import Categoria
-from app.renovacao import renovacoes_no_periodo
+from app.moedas import MOEDA_PADRAO
 from app.repositories.historico_repository import HistoricoRepository
 
 MESES_PROJECAO = 12
@@ -40,19 +41,29 @@ def _decimal(texto):
         return None
 
 
-def _item(assinatura, categorias):
-    """Resumo de uma assinatura já normalizado para valores anual e mensal."""
-    anual = float(assinatura.valor_anualizado)
+def _item(assinatura, categorias, moeda_base):
+    """Resumo de uma assinatura: parte do usuário, convertida para a moeda base."""
+    anual = float(assinatura.anualizado_em(moeda_base))
     return {
         'id_assinatura': assinatura.id_assinatura,
         'nome_servico': assinatura.nome_servico,
         'categoria': categorias.get(assinatura.id_categoria, 'Sem categoria'),
         'periodicidade': assinatura.periodicidade or 'mensal',
         'metodo_pagamento': assinatura.metodo_pagamento,
-        'valor_periodo': float(assinatura.valor_mensal),
+        'valor_periodo': float(assinatura.minha_parte_em(moeda_base)),
         'anual': anual,
         'mensal': anual / 12,
+        'data_cancelamento': assinatura.data_cancelamento,
+        'teste_ate': assinatura.teste_ate,
     }
+
+
+def _economizado(item, hoje):
+    """Quanto o usuário já deixou de pagar desde a data de cancelamento (0 se não houver data)."""
+    cancelada_em = item['data_cancelamento']
+    if not cancelada_em:
+        return 0.0
+    return item['anual'] / 365 * max(0, (hoje - cancelada_em).days)
 
 
 def _agrupar(itens, chave):
@@ -81,6 +92,7 @@ class VisaoGeralAssinaturaService:
     @staticmethod
     def executar(usuario_atual):
         id_usuario = usuario_atual.id_usuario
+        moeda_base = usuario_atual.moeda_base or MOEDA_PADRAO
         hoje = date.today()
 
         categorias = {
@@ -88,11 +100,17 @@ class VisaoGeralAssinaturaService:
             for c in Categoria.listar_por_usuario(id_usuario)
         }
         assinaturas = Assinatura.listar_por_usuario(id_usuario)
+        # `ativas` inclui as em teste; os totais de gasto usam só quem já cobra.
         ativas = [a for a in assinaturas if a.status == 'ativa']
+        em_teste = [a for a in ativas if a.em_teste(hoje)]
+        cobrando = [a for a in ativas if not a.em_teste(hoje)]
+        pausadas = [a for a in assinaturas if a.status == 'pausada']
         canceladas = [a for a in assinaturas if a.status == 'cancelada']
 
-        itens = [_item(a, categorias) for a in ativas]
-        itens_cancelados = [_item(a, categorias) for a in canceladas]
+        itens = [_item(a, categorias, moeda_base) for a in cobrando]
+        itens_cancelados = [_item(a, categorias, moeda_base) for a in canceladas]
+        itens_pausados = [_item(a, categorias, moeda_base) for a in pausadas]
+        itens_teste = [_item(a, categorias, moeda_base) for a in em_teste]
 
         total_anual = sum(i['anual'] for i in itens)
         total_mensal = total_anual / 12
@@ -114,6 +132,7 @@ class VisaoGeralAssinaturaService:
         ]
 
         economia_anual = sum(i['anual'] for i in itens_cancelados)
+        economia_acumulada = sum(_economizado(i, hoje) for i in itens_cancelados)
         total = len(ativas) + len(canceladas)
 
         resumo = {
@@ -121,6 +140,8 @@ class VisaoGeralAssinaturaService:
             'total_anual': _dinheiro(total_anual),
             'custo_diario': _dinheiro(total_anual / 365),
             'ativas': len(ativas),
+            'em_teste': len(em_teste),
+            'pausadas': len(pausadas),
             'canceladas': len(canceladas),
             'total': total,
             'taxa_cancelamento': _percentual(len(canceladas), total),
@@ -139,25 +160,50 @@ class VisaoGeralAssinaturaService:
             ),
             'economia_mensal': _dinheiro(economia_anual / 12),
             'economia_anual': _dinheiro(economia_anual),
+            'economia_acumulada': _dinheiro(economia_acumulada),
         }
 
         return {
+            'moeda_base': moeda_base,
+            'cambio': info_cambio(),
             'resumo': resumo,
             'maiores': maiores,
             'por_categoria': VisaoGeralAssinaturaService._por_categoria(itens, total_anual),
             'por_periodicidade': VisaoGeralAssinaturaService._por_periodicidade(itens, total_anual),
             'por_pagamento': VisaoGeralAssinaturaService._por_pagamento(itens, total_anual),
             'faixas_valor': VisaoGeralAssinaturaService._faixas(itens),
-            'projecao': VisaoGeralAssinaturaService._projecao(ativas, hoje),
-            'proximas_cobrancas': VisaoGeralAssinaturaService._proximas_cobrancas(ativas, hoje),
+            'projecao': VisaoGeralAssinaturaService._projecao(ativas, hoje, moeda_base),
+            'proximas_cobrancas': VisaoGeralAssinaturaService._proximas_cobrancas(ativas, hoje, moeda_base),
             'canceladas': [
                 {
                     'nome_servico': i['nome_servico'],
                     'periodicidade': i['periodicidade'],
                     'total_mensal': _dinheiro(i['mensal']),
                     'total_anual': _dinheiro(i['anual']),
+                    'data_cancelamento': i['data_cancelamento'].isoformat() if i['data_cancelamento'] else None,
+                    'economizado': _dinheiro(_economizado(i, hoje)),
                 }
                 for i in sorted(itens_cancelados, key=lambda i: i['anual'], reverse=True)
+            ],
+            'pausadas': [
+                {
+                    'nome_servico': i['nome_servico'],
+                    'periodicidade': i['periodicidade'],
+                    'total_mensal': _dinheiro(i['mensal']),
+                    'total_anual': _dinheiro(i['anual']),
+                }
+                for i in sorted(itens_pausados, key=lambda i: i['anual'], reverse=True)
+            ],
+            'em_teste': [
+                {
+                    'nome_servico': i['nome_servico'],
+                    'periodicidade': i['periodicidade'],
+                    'teste_ate': i['teste_ate'].isoformat(),
+                    'dias_restantes': (i['teste_ate'] - hoje).days,
+                    'total_mensal': _dinheiro(i['mensal']),
+                    'total_anual': _dinheiro(i['anual']),
+                }
+                for i in sorted(itens_teste, key=lambda i: i['teste_ate'])
             ],
             'reajustes': VisaoGeralAssinaturaService._reajustes(id_usuario),
         }
@@ -217,7 +263,7 @@ class VisaoGeralAssinaturaService:
         return faixas
 
     @staticmethod
-    def _projecao(ativas, hoje):
+    def _projecao(ativas, hoje, moeda_base):
         """Quanto será cobrado em cada um dos próximos 12 meses (mês atual incluso).
 
         Usa as datas reais de cobrança, então anuais e semanais aparecem no mês
@@ -232,11 +278,10 @@ class VisaoGeralAssinaturaService:
         fim = date(ano_fim, mes_fim, calendar.monthrange(ano_fim, mes_fim)[1])
 
         for a in ativas:
-            for data in renovacoes_no_periodo(
-                a.data_renovacao, a.periodicidade or 'mensal', inicio, fim
-            ):
+            valor = float(a.minha_parte_em(moeda_base))
+            for data in a.renovacoes_no_periodo(inicio, fim):
                 bloco = meses[(data.year, data.month)]
-                bloco['total'] += float(a.valor_mensal)
+                bloco['total'] += valor
                 bloco['qtd'] += 1
 
         serie = [
@@ -256,15 +301,14 @@ class VisaoGeralAssinaturaService:
         }
 
     @staticmethod
-    def _proximas_cobrancas(ativas, hoje):
+    def _proximas_cobrancas(ativas, hoje, moeda_base):
         limite = max(JANELAS_COBRANCA)
         fim = hoje + timedelta(days=limite)
         cobrancas = []
         for a in ativas:
-            for data in renovacoes_no_periodo(
-                a.data_renovacao, a.periodicidade or 'mensal', hoje, fim
-            ):
-                cobrancas.append((data, float(a.valor_mensal)))
+            valor = float(a.minha_parte_em(moeda_base))
+            for data in a.renovacoes_no_periodo(hoje, fim):
+                cobrancas.append((data, valor))
 
         janelas = []
         for dias in JANELAS_COBRANCA:

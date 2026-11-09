@@ -29,8 +29,9 @@ function valorAnualizado(a) {
   return a.valor_anualizado != null ? a.valor_anualizado : a.valor_mensal * f;
 }
 
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+// formatarMoeda(valor, moeda) e a moeda base do usuário ficam em api.js
+function dataBr(iso) {
+  return iso ? iso.split('-').reverse().join('/') : '';
 }
 
 function diasAteRenovacao(dataStr) {
@@ -115,6 +116,7 @@ async function carregarEstatisticas() {
 }
 
 function renderizarStats(dados) {
+  definirMoedaBase(dados.moeda_base);
   const row = document.getElementById('stats-row');
   row.style.display = '';
   document.getElementById('total-mensal').textContent = formatarMoeda(dados.total_mensal || 0);
@@ -127,7 +129,16 @@ function renderizarStats(dados) {
   const sub = document.getElementById('stat-cat-cara-sub');
   if (sub) sub.textContent = catCara ? `${formatarMoeda(catCara.total_anual || catCara.total || 0)} / ano` : '';
   const hint = document.getElementById('summary-anual-hint');
-  if (hint) { hint.textContent = `Você gasta ${formatarMoeda(totalAnual)} por ano`; hint.style.display = ''; }
+  if (hint) {
+    const aviso = dados.cambio && dados.cambio.fonte === 'aproximada' ? ' · cotação de câmbio aproximada (API indisponível)' : '';
+    hint.textContent = `Você gasta ${formatarMoeda(totalAnual)} por ano${aviso}`;
+    hint.style.display = '';
+  }
+  const badge = document.getElementById('summary-badge');
+  if (badge) {
+    const teste = dados.total_em_teste ? ` · ${dados.total_em_teste} em teste, sem cobrança por enquanto` : '';
+    badge.textContent = `somente assinaturas ativas, com a sua parte nas divididas${teste}`;
+  }
 }
 
 let ultimasEstatisticas = null;
@@ -270,8 +281,10 @@ function renderizarRenovacoes() {
   }
 
   container.innerHTML = proximas.map(a => {
-    const dias = diasAteRenovacao(a.proxima_renovacao);
-    const label = dias === 0 ? 'Renova hoje' : dias === 1 ? 'Renova amanhã' : `Renova em ${dias} dias`;
+    const dias = a.em_teste ? a.dias_teste_restantes : diasAteRenovacao(a.proxima_renovacao);
+    const label = a.em_teste
+      ? (dias === 1 ? 'Teste termina amanhã' : `Teste termina em ${dias} dias`)
+      : dias === 0 ? 'Renova hoje' : dias === 1 ? 'Renova amanhã' : `Renova em ${dias} dias`;
     const urgente = dias <= 3 ? ' style="color:var(--red);font-weight:600;"' : '';
     return `
       <div class="renewal-item">
@@ -282,7 +295,7 @@ function renderizarRenovacoes() {
           <div class="renewal-name">${escapar(a.nome_servico)}</div>
           <div class="renewal-days"${urgente}>${label}</div>
         </div>
-        <div class="renewal-value">${formatarMoeda(a.valor_mensal)}</div>
+        <div class="renewal-value">${formatarMoeda(a.valor_minha_parte, a.moeda)}</div>
       </div>`;
   }).join('');
 }
@@ -310,19 +323,31 @@ function renderizarAssinaturas() {
   }
 
   container.innerHTML = todasAssinaturas.map(a => {
-    const badgeClass = a.status === 'ativa' ? 'badge-ativa' : 'badge-cancelada';
+    const situacao = a.status === 'cancelada' ? { classe: 'badge-cancelada', texto: 'Cancelada' }
+      : a.status === 'pausada' ? { classe: 'badge-pausada', texto: 'Pausada' }
+        : a.em_teste ? { classe: 'badge-teste', texto: `Em teste · ${a.dias_teste_restantes}d` }
+          : { classe: 'badge-ativa', texto: 'Ativa' };
     const per = PERIODICIDADE_LABEL[a.periodicidade] || 'Mensal';
-    const anual = formatarMoeda(valorAnualizado(a));
+    const aprox = a.moeda !== a.moeda_base ? '≈ ' : '';
+    const anual = `${aprox}${formatarMoeda(valorAnualizado(a), a.moeda_base)}`;
+    const detalhes = [
+      a.tipo_plano || 'Sem plano',
+      METODOS_PAGAMENTO_LABEL[a.metodo_pagamento] || 'Pagamento não informado',
+      a.em_teste ? `${anual}/ano após o teste` : `${anual}/ano`
+    ];
+    if (a.num_pessoas > 1) detalhes.push(`dividida por ${a.num_pessoas} · sua parte ${formatarMoeda(a.valor_minha_parte, a.moeda)}`);
+    if (a.em_teste) detalhes.push(`teste até ${dataBr(a.teste_ate)}`);
+    if (a.status === 'cancelada' && a.data_cancelamento) detalhes.push(`cancelada em ${dataBr(a.data_cancelamento)}`);
     return `
     <div class="sub-item">
       <div class="service-logo">
         <img src="${logoUrl(a.nome_servico)}" alt="${escapar(a.nome_servico)}" data-inicial="${escapar(a.nome_servico[0])}" />
       </div>
       <div class="sub-info">
-        <div class="sub-name">${escapar(a.nome_servico)} <span class="badge ${badgeClass}" style="margin-left:6px;font-size:10px;">${a.status === 'ativa' ? 'Ativa' : 'Cancelada'}</span> <span class="badge" style="margin-left:4px;font-size:10px;background:var(--bg);border:1px solid var(--border);">${escapar(per)}</span></div>
-        <div class="sub-category">${escapar(a.tipo_plano || 'Sem plano')} · ${METODOS_PAGAMENTO_LABEL[a.metodo_pagamento] || 'Pagamento não informado'} · ${anual}/ano</div>
+        <div class="sub-name">${escapar(a.nome_servico)} <span class="badge ${situacao.classe}" style="margin-left:6px;font-size:10px;">${escapar(situacao.texto)}</span> <span class="badge" style="margin-left:4px;font-size:10px;background:var(--bg);border:1px solid var(--border);">${escapar(per)}</span></div>
+        <div class="sub-category">${escapar(detalhes.join(' · '))}</div>
       </div>
-      <div class="sub-value">${formatarMoeda(a.valor_mensal)}</div>
+      <div class="sub-value">${formatarMoeda(a.valor_mensal, a.moeda)}</div>
       <div class="sub-actions">
         <button class="btn-icon" title="Histórico" onclick="abrirHistorico(${a.id_assinatura})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -355,7 +380,12 @@ const NOTIF_KEY = 'assinify_notif_lidas';
 let notifStorageKey = NOTIF_KEY;
 
 // Chave por assinatura + data: a mesma assinatura volta a notificar no ciclo seguinte.
-function chaveNotif(a) { return `${a.id_assinatura}:${a.proxima_renovacao}`; }
+function chaveNotif(a) { return a.em_teste ? `${a.id_assinatura}:teste:${a.teste_ate}` : `${a.id_assinatura}:${a.proxima_renovacao}`; }
+
+// Dias até o evento que gera o aviso: fim do teste (se em teste) ou a renovação.
+function diasParaAviso(a) {
+  return a.em_teste ? a.dias_teste_restantes : diasAteRenovacao(a.proxima_renovacao);
+}
 
 function getNotifsLidas() {
   try { return JSON.parse(localStorage.getItem(notifStorageKey) || '[]'); } catch { return []; }
@@ -367,11 +397,11 @@ function setNotifsLidas(chaves) {
 function renovacoesProximas7Dias() {
   return proximasRenovacoes
     .filter(a => {
-      if (!a.proxima_renovacao) return false;
-      const dias = diasAteRenovacao(a.proxima_renovacao);
+      if (!a.em_teste && !a.proxima_renovacao) return false;
+      const dias = diasParaAviso(a);
       return dias >= 0 && dias <= 7;
     })
-    .sort((a, b) => diasAteRenovacao(a.proxima_renovacao) - diasAteRenovacao(b.proxima_renovacao));
+    .sort((a, b) => diasParaAviso(a) - diasParaAviso(b));
 }
 
 function atualizarNotificacoes() {
@@ -395,10 +425,12 @@ function atualizarNotificacoes() {
   }
 
   list.innerHTML = pendentes.map(a => {
-    const dias = diasAteRenovacao(a.proxima_renovacao);
-    const label = dias === 0 ? 'Vence hoje!' : dias === 1 ? 'Vence amanhã' : `Vence em ${dias} dias`;
+    const dias = diasParaAviso(a);
+    const label = a.em_teste
+      ? (dias === 1 ? 'Teste termina amanhã' : `Teste termina em ${dias} dias`)
+      : dias === 0 ? 'Vence hoje!' : dias === 1 ? 'Vence amanhã' : `Vence em ${dias} dias`;
     const isLida = lidas.includes(chaveNotif(a));
-    const urgente = dias <= 2 ? ' notif-item-urgent' : '';
+    const urgente = dias <= (a.em_teste ? 3 : 2) ? ' notif-item-urgent' : '';
     return `
       <div class="notif-item${urgente}${isLida ? ' notif-item-read' : ''}">
         <div class="service-logo" style="width:32px;height:32px;border-radius:8px;">
@@ -406,7 +438,7 @@ function atualizarNotificacoes() {
         </div>
         <div class="notif-item-info">
           <div class="notif-item-name">${escapar(a.nome_servico)}</div>
-          <div class="notif-item-meta">${label} · ${formatarMoeda(a.valor_mensal)} · ${escapar(a.proxima_renovacao)}</div>
+          <div class="notif-item-meta">${label} · ${a.em_teste ? 'depois ' : ''}${formatarMoeda(a.valor_minha_parte, a.moeda)} · ${escapar(a.em_teste ? a.teste_ate : a.proxima_renovacao)}</div>
         </div>
         ${isLida ? '<span class="notif-check">✓</span>' : ''}
       </div>`;
@@ -444,12 +476,37 @@ async function carregarCategorias() {
   }
 }
 
+function alternarStatus() {
+  const cancelada = document.getElementById('input-status').value === 'cancelada';
+  document.getElementById('grupo-cancelamento').style.display = cancelada ? '' : 'none';
+}
+
+function alternarTeste() {
+  const ligado = document.getElementById('input-teste').checked;
+  document.getElementById('grupo-teste').style.display = ligado ? '' : 'none';
+}
+
+// A primeira cobrança é no fim do teste: já sugere essa data como renovação.
+function sincronizarRenovacaoComTeste() {
+  const fim = document.getElementById('input-teste-ate').value;
+  const renovacao = document.getElementById('input-renovacao');
+  if (fim && (!renovacao.value || renovacao.value < fim)) renovacao.value = fim;
+}
+
 function atualizarPreviewAnualizado() {
   const v = parseFloat(document.getElementById('input-valor').value) || 0;
   const per = document.getElementById('input-periodicidade')?.value || 'mensal';
   const f = FATOR_ANUAL_JS[per] || 12;
+  const pessoas = Math.max(1, parseInt(document.getElementById('input-pessoas')?.value, 10) || 1);
+  const moeda = document.getElementById('input-moeda')?.value || moedaBase;
   const el = document.getElementById('preview-anualizado-valor');
-  if (el) el.textContent = v ? formatarMoeda(v * f) : '—';
+  const extra = document.getElementById('preview-anualizado-extra');
+  if (el) el.textContent = v ? formatarMoeda((v * f) / pessoas, moeda) : '—';
+  if (extra) {
+    extra.textContent = v && pessoas > 1
+      ? ` (sua parte: ${formatarMoeda(v * f, moeda)} divididos por ${pessoas})`
+      : '';
+  }
 }
 
 function abrirModal() {
@@ -462,6 +519,13 @@ function abrirModal() {
   document.getElementById('input-plano').value = '';
   document.getElementById('input-pagamento').value = 'cartao_credito';
   document.getElementById('input-status').value = 'ativa';
+  document.getElementById('input-moeda').value = moedaBase;
+  document.getElementById('input-pessoas').value = 1;
+  document.getElementById('input-data-cancelamento').value = '';
+  document.getElementById('input-teste').checked = false;
+  document.getElementById('input-teste-ate').value = '';
+  alternarStatus();
+  alternarTeste();
   atualizarPreviewAnualizado();
   UI.limparErroForm('modal-erro');
   document.getElementById('modal').classList.add('open');
@@ -479,6 +543,13 @@ function abrirModalEditar(id) {
   document.getElementById('input-plano').value = a.tipo_plano || '';
   document.getElementById('input-pagamento').value = a.metodo_pagamento || 'cartao_credito';
   document.getElementById('input-status').value = a.status || 'ativa';
+  document.getElementById('input-moeda').value = a.moeda || moedaBase;
+  document.getElementById('input-pessoas').value = a.num_pessoas || 1;
+  document.getElementById('input-data-cancelamento').value = a.data_cancelamento || '';
+  document.getElementById('input-teste').checked = !!a.em_teste;
+  document.getElementById('input-teste-ate').value = a.em_teste ? a.teste_ate : '';
+  alternarStatus();
+  alternarTeste();
   atualizarPreviewAnualizado();
   document.getElementById('input-categoria').value = a.id_categoria;
   UI.limparErroForm('modal-erro');
@@ -502,11 +573,26 @@ async function salvarAssinatura() {
     tipo_plano: document.getElementById('input-plano').value,
     metodo_pagamento: document.getElementById('input-pagamento').value,
     id_categoria: parseInt(document.getElementById('input-categoria').value),
-    status: document.getElementById('input-status').value
+    status: document.getElementById('input-status').value,
+    moeda: document.getElementById('input-moeda').value,
+    num_pessoas: parseInt(document.getElementById('input-pessoas').value, 10) || 1
   };
+  const emTeste = document.getElementById('input-teste').checked;
+  dados.teste_ate = emTeste ? (document.getElementById('input-teste-ate').value || null) : null;
+  dados.data_cancelamento = dados.status === 'cancelada'
+    ? (document.getElementById('input-data-cancelamento').value || null)
+    : null;
 
   if (!dados.nome_servico || !dados.valor_mensal || !dados.data_renovacao) {
     UI.erroForm('modal-erro', 'Preencha o nome, o valor e a data de renovação.');
+    return;
+  }
+  if (emTeste && !dados.teste_ate) {
+    UI.erroForm('modal-erro', 'Informe quando o teste gratuito termina.');
+    return;
+  }
+  if (dados.num_pessoas < 1 || dados.num_pessoas > 50) {
+    UI.erroForm('modal-erro', 'O número de pessoas deve estar entre 1 e 50.');
     return;
   }
 
@@ -569,7 +655,12 @@ async function exportarCSV() {
   } catch { UI.toast('Erro de conexão ao exportar.', 'erro'); }
 }
 
-const CAMPO_LABEL = { nome_servico: 'Nome', valor_mensal: 'Valor', periodicidade: 'Periodicidade', data_renovacao: 'Renovação', status: 'Status', tipo_plano: 'Plano', metodo_pagamento: 'Pagamento', id_categoria: 'Categoria' };
+const CAMPO_LABEL = {
+  nome_servico: 'Nome', valor_mensal: 'Valor', moeda: 'Moeda', num_pessoas: 'Pessoas dividindo',
+  periodicidade: 'Periodicidade', data_renovacao: 'Renovação', status: 'Status',
+  data_cancelamento: 'Data do cancelamento', teste_ate: 'Fim do teste gratuito',
+  tipo_plano: 'Plano', metodo_pagamento: 'Pagamento', id_categoria: 'Categoria'
+};
 async function abrirHistorico(id) {
   const a = todasAssinaturas.find(x => x.id_assinatura === id);
   document.getElementById('historico-nome').textContent = a ? a.nome_servico : '';
@@ -594,6 +685,7 @@ async function init() {
   const usuario = await protegerPagina();
   if (!usuario) return;
   notifStorageKey = `${NOTIF_KEY}_${usuario.id_usuario}`;
+  document.getElementById('input-moeda').innerHTML = opcoesMoeda(moedaBase);
   await carregarCategorias();
   carregarAssinaturas();
   carregarEstatisticas();
@@ -601,6 +693,8 @@ async function init() {
   // preview anualizado reativo
   document.getElementById('input-valor')?.addEventListener('input', atualizarPreviewAnualizado);
   document.getElementById('input-periodicidade')?.addEventListener('change', atualizarPreviewAnualizado);
+  document.getElementById('input-moeda')?.addEventListener('change', atualizarPreviewAnualizado);
+  document.getElementById('input-pessoas')?.addEventListener('input', atualizarPreviewAnualizado);
 }
 
 init();
