@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from flask import current_app
+
 from app.models.usuario import Usuario
 from app.repositories.usuario_repository import UsuarioRepository
 from app.security.senha import hashear_senha
@@ -29,6 +33,12 @@ class RegistrarUsuarioService:
         email = validar_email(dados.get('email'))
         senha = dados.get('senha')
 
+        # Consentimento explícito: sem o aceite dos termos a conta não é criada.
+        if dados.get('aceitou_termos') is not True:
+            raise ValidationError(
+                'É necessário aceitar os Termos de Uso e a Política de Privacidade para criar a conta'
+            )
+
         if not isinstance(senha, str) or len(senha) < SENHA_MIN_CARACTERES:
             raise ValidationError(
                 f'Senha é obrigatória e deve ter ao menos {SENHA_MIN_CARACTERES} caracteres'
@@ -42,7 +52,9 @@ class RegistrarUsuarioService:
             nome=nome,
             email=email,
             senha_hash=hashear_senha(senha),
-            role='user'
+            role='user',
+            termos_aceitos_em=datetime.utcnow(),
+            termos_versao=current_app.config['TERMOS_VERSAO']
         )
         usuario.salvar()
 

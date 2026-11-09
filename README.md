@@ -81,7 +81,7 @@ O **Assinify** reúne em um só painel todas as assinaturas e serviços recorren
 |---|---|
 | **Frontend** | HTML5, CSS3 e JavaScript puros (sem framework e sem build), Chart.js 4, fontes Sora e Inter |
 | **Backend** | Python 3.10+, Flask (API REST que devolve apenas JSON), Flask-SQLAlchemy (ORM), Flask-CORS, PyJWT, Werkzeug (hash de senha), Pillow, python-dotenv |
-| **Banco de dados** | MySQL 8 |
+| **Banco de dados** | MySQL 8 (via XAMPP) |
 | **IA** | Google Gemini API (chat com ferramentas, saída em JSON e busca na web) |
 | **Serviços externos** | open.er-api.com (cotações de câmbio) e Logo.dev (logos) |
 
@@ -132,11 +132,104 @@ Peças de apoio: `middlewares/` (decorators `@token_requerido` e `@admin_requeri
 
 O campo `valor_mensal` guarda o preço cobrado **por período**: numa assinatura anual de R$ 600 ele vale `600`. O gasto do usuário é calculado como `preço ÷ pessoas × fator anual`, convertido para a moeda base. Assinaturas em teste gratuito, pausadas e canceladas não entram nos totais de gasto.
 
+### Diagrama de classes do domínio
+
+O diagrama abaixo (também em `docs/diagrama-classes.md` e `docs/diagrama-classes.mmd`) mostra as entidades do domínio, seus atributos principais e como se relacionam.
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Usuario {
+        +int id_usuario
+        +string nome
+        +string email
+        +string senha_hash
+        +string role
+        +date data_cadastro
+        +string foto_perfil
+        +string moeda_base
+        +datetime termos_aceitos_em
+        +string termos_versao
+        +salvar()
+        +atualizar()
+        +definir_foto()
+        +deletar()
+        +buscar_por_id()
+        +to_dict()
+    }
+
+    class Categoria {
+        +int id_categoria
+        +string nome_categoria
+        +string descricao
+        +int id_usuario
+        +salvar()
+        +atualizar()
+        +deletar()
+        +listar_por_usuario()
+        +buscar_por_id()
+        +to_dict()
+    }
+
+    class Assinatura {
+        +int id_assinatura
+        +string nome_servico
+        +decimal valor_mensal
+        +string moeda
+        +int num_pessoas
+        +date data_renovacao
+        +string status
+        +date data_cancelamento
+        +date teste_ate
+        +string tipo_plano
+        +string metodo_pagamento
+        +string periodicidade
+        +int id_usuario
+        +int id_categoria
+        +valor_minha_parte()
+        +valor_anualizado()
+        +anualizado_em()
+        +em_teste()
+        +proxima_renovacao()
+        +renovacoes_no_periodo()
+        +salvar()
+        +atualizar()
+        +deletar()
+        +to_dict()
+    }
+
+    class HistoricoAssinatura {
+        +int id
+        +int id_assinatura
+        +string campo
+        +text valor_antigo
+        +text valor_novo
+        +datetime data_alteracao
+        +int id_usuario
+        +to_dict()
+    }
+
+    class TaxaCambio {
+        +string moeda
+        +decimal taxa_por_usd
+        +datetime atualizada_em
+    }
+
+    Usuario "1" --> "0..*" Categoria : possui
+    Usuario "1" --> "0..*" Assinatura : possui
+    Categoria "1" --> "0..*" Assinatura : classifica
+    Assinatura "1" --> "0..*" HistoricoAssinatura : registra alteracoes
+    Usuario "1" --> "0..*" HistoricoAssinatura : autor da alteracao
+    Assinatura ..> TaxaCambio : converte valores usando
+```
+
 ### Estrutura do projeto
 
 ```
 assinify/
 ├── README.md
+├── docs/                           # diagrama de classes (Mermaid)
 ├── frontend/
 │   ├── pages/                      # login, registro, termos, dashboard, estatisticas,
 │   │                               # categorias, usuarios, perfil
@@ -198,7 +291,7 @@ assinify/
 ### Pré-requisitos
 
 - Python 3.10 ou superior
-- MySQL 8.0+
+- MySQL 8.0+ (via XAMPP)
 - Extensão Live Server no VSCode, ou o próprio Python, para servir o frontend
 - (Opcional) uma chave da API do Gemini, obtida no [Google AI Studio](https://aistudio.google.com/apikey), para habilitar os recursos de IA
 
@@ -211,7 +304,7 @@ cd assinify
 
 ### 2. Crie o banco de dados
 
-Inicie o MySQL, abra o phpMyAdmin (`http://localhost/phpmyadmin`), vá em **SQL** e execute o conteúdo de `backend/database/create_database.sql`. As tabelas também são criadas automaticamente quando a API sobe.
+Inicie o MySQL no XAMPP, abra o phpMyAdmin (`http://localhost/phpmyadmin`), vá em **SQL** e execute o conteúdo de `backend/database/create_database.sql`. As tabelas também são criadas automaticamente quando a API sobe.
 
 ### 3. Configure e rode o backend (servidor 1)
 
@@ -231,7 +324,7 @@ Variáveis do `.env`:
 | Variável | Descrição |
 |---|---|
 | `SECRET_KEY` | Chave de assinatura dos JWT. **Troque por um valor longo e aleatório.** |
-| `DATABASE_URL` | Padrão: `mysql+pymysql://root:@localhost/assinify` |
+| `DATABASE_URL` | Padrão do XAMPP: `mysql+pymysql://root:@localhost/assinify` |
 | `ADMIN_EMAIL` | E-mail do admin padrão (padrão: `admin@assinify.com`) |
 | `ADMIN_SENHA` | Senha inicial do admin padrão (padrão: `admin123`). **Troque.** |
 | `GEMINI_API_KEY` | Chave da API do Gemini. Sem ela, os recursos de IA respondem 503 e o resto do sistema funciona normalmente. |

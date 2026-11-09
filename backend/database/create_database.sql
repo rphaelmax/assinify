@@ -9,7 +9,9 @@ create table if not exists usuarios (
     role varchar(20) not null default 'user',
     data_cadastro date default (current_date),
     foto_perfil varchar(100) null,
-    moeda_base varchar(3) not null default 'BRL'
+    moeda_base varchar(3) not null default 'BRL',
+    termos_aceitos_em datetime null,
+    termos_versao varchar(10) null
 );
 
 create table if not exists categorias (

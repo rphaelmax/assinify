@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from app.extensions import db
 
@@ -15,6 +15,9 @@ class Usuario(db.Model):
     foto_perfil = db.Column(db.String(100), nullable=True)
     # Moeda para a qual todos os valores do usuário são convertidos nos totais
     moeda_base = db.Column(db.String(3), nullable=False, default='BRL')
+    # Consentimento: quando e qual versão dos termos o usuário aceitou no cadastro
+    termos_aceitos_em = db.Column(db.DateTime, nullable=True)
+    termos_versao = db.Column(db.String(10), nullable=True)
 
     assinaturas = db.relationship('Assinatura', backref='usuario', lazy=True, cascade='all, delete-orphan')
     categorias = db.relationship('Categoria', backref='usuario', lazy=True, cascade='all, delete-orphan')
@@ -64,5 +67,7 @@ class Usuario(db.Model):
             'role': self.role,
             'data_cadastro': self.data_cadastro.isoformat() if self.data_cadastro else None,
             'moeda_base': self.moeda_base or 'BRL',
+            'termos_aceitos_em': self.termos_aceitos_em.isoformat() if self.termos_aceitos_em else None,
+            'termos_versao': self.termos_versao,
             'foto_url': f'/uploads/avatars/{self.foto_perfil}' if self.foto_perfil else None
         }
