@@ -2289,7 +2289,6 @@ tbody tr:hover {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-muted);
-  max-width: 360px;
   margin-bottom: 8px;
 }
 
