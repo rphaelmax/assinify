@@ -81,7 +81,7 @@ O **Assinify** reúne em um só painel todas as assinaturas e serviços recorren
 |---|---|
 | **Frontend** | HTML5, CSS3 e JavaScript puros (sem framework e sem build), Chart.js 4, fontes Sora e Inter |
 | **Backend** | Python 3.10+, Flask (API REST que devolve apenas JSON), Flask-SQLAlchemy (ORM), Flask-CORS, PyJWT, Werkzeug (hash de senha), Pillow, python-dotenv |
-| **Banco de dados** | MySQL 8 (via XAMPP) |
+| **Banco de dados** | MySQL 8 |
 | **IA** | Google Gemini API (chat com ferramentas, saída em JSON e busca na web) |
 | **Serviços externos** | open.er-api.com (cotações de câmbio) e Logo.dev (logos) |
 
@@ -94,10 +94,10 @@ O projeto tem **arquitetura cliente-servidor**: o frontend é um conjunto de arq
 ```
 ┌─────────────────────────────┐        fetch() + JSON         ┌──────────────────────────────┐
 │  FRONTEND (servidor 1)      │  ───────────────────────────► │  API FLASK (servidor 2)      │
-│  HTML + CSS + JavaScript    │  ◄───────────────────────────  │  http://localhost:5000       │
-│  http://localhost:5500      │     Authorization: Bearer      │                              │
-└─────────────────────────────┘                                └──────────────┬───────────────┘
-                                                                              │
+│  HTML + CSS + JavaScript    │  ◄─────────────────────────── │  http://localhost:5000       │
+│  http://localhost:5500      │     Authorization: Bearer     │                              │
+└─────────────────────────────┘                               └──────────────┬───────────────┘
+                                                                             │
                               Controllers ──► Services ──► Repositories ──► Models (SQLAlchemy) ──► MySQL
                                                   │
                                                   └──► Gemini API · open.er-api.com
@@ -198,7 +198,7 @@ assinify/
 ### Pré-requisitos
 
 - Python 3.10 ou superior
-- MySQL 8.0+ (via XAMPP)
+- MySQL 8.0+
 - Extensão Live Server no VSCode, ou o próprio Python, para servir o frontend
 - (Opcional) uma chave da API do Gemini, obtida no [Google AI Studio](https://aistudio.google.com/apikey), para habilitar os recursos de IA
 
@@ -211,7 +211,7 @@ cd assinify
 
 ### 2. Crie o banco de dados
 
-Inicie o MySQL no XAMPP, abra o phpMyAdmin (`http://localhost/phpmyadmin`), vá em **SQL** e execute o conteúdo de `backend/database/create_database.sql`. As tabelas também são criadas automaticamente quando a API sobe.
+Inicie o MySQL, abra o phpMyAdmin (`http://localhost/phpmyadmin`), vá em **SQL** e execute o conteúdo de `backend/database/create_database.sql`. As tabelas também são criadas automaticamente quando a API sobe.
 
 ### 3. Configure e rode o backend (servidor 1)
 
@@ -231,7 +231,7 @@ Variáveis do `.env`:
 | Variável | Descrição |
 |---|---|
 | `SECRET_KEY` | Chave de assinatura dos JWT. **Troque por um valor longo e aleatório.** |
-| `DATABASE_URL` | Padrão do XAMPP: `mysql+pymysql://root:@localhost/assinify` |
+| `DATABASE_URL` | Padrão: `mysql+pymysql://root:@localhost/assinify` |
 | `ADMIN_EMAIL` | E-mail do admin padrão (padrão: `admin@assinify.com`) |
 | `ADMIN_SENHA` | Senha inicial do admin padrão (padrão: `admin123`). **Troque.** |
 | `GEMINI_API_KEY` | Chave da API do Gemini. Sem ela, os recursos de IA respondem 503 e o resto do sistema funciona normalmente. |
@@ -340,8 +340,8 @@ Desenvolvido como projeto de conclusão do curso técnico em Informática no col
 
 | Nome | GitHub |
 |---|---|
-| **Juan Marco Costa Xavier** | [@JuanMxavieer](https://github.com/JuanMxavieer) |
 | **Raphael Max Alves Jacomo** | [@rphaelmax](https://github.com/rphaelmax) |
+| **Juan Marco Costa Xavier** | [@JuanMxavieer](https://github.com/JuanMxavieer) |
+| **Arthur de Paiva** | [@ArthurPaivaa](https://github.com/ArthurPaivaa) |
 | **Juan Leonel Monteiro** | [@JuanLeonel27](https://github.com/JuanLeonel27) |
 | **João Marcelo Augusto Moreira** | [@joaomarceloaugusto](https://github.com/joaomarceloaugusto) |
-| **Arthur de Paiva** | — |

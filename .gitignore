@@ -32,3 +32,6 @@ logs/
 
 # Banco de dados local
 *.db
+
+# Pasta de uploads
+backend/uploads/
